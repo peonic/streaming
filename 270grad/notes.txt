@@ -1,0 +1,64 @@
+mp4 varianten:
+bandbreitenausnutzung sink mit der zeit (ruhiges bild/keyframe), ab bitrate 1 mil kaum sichtbare artefakte, gute latenz (vergleichbar bit jpeg)
+
+
+mpeg4 msv3!
+load: 15% (no bitrate specificaiton)
+load: 30-22% bitrate=100000, no latency, faster, 100-150 kbyte
+load: 47% bitrate=5 000000, more latency, 350-450kbyte
+
+gst-launch-0.10 -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=25/1 !  ffmpegcolorspace ! ffenc_msmpeg4 ! udpsink host=127.0.0.1 port=5000  sync=false
+gst-launch-0.10 udpsrc port=5000 caps='video/x-msmpeg, width=(int)640, height=(int)480, framerate=(fraction)25/1, msmpegversion=(int)43' ! queue ! ffdec_msmpeg4 ! queue ! xvimagesink
+
+
+v1 funkt nicht, v2 & v3 etwa gleiche cpu raten
+
+mpeg4 solo
+bitrate 5000000, load:50%, 350-450kbyte
+
+
+#### filesink & multiplexer test #####
+
+qtmux is not working. ffmux ist partly working
+avimux & mpegtsmux are!!!
+
+
+gst-launch-0.10 -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=25/1 !  ffmpegcolorspace ! ffenc_mpeg4 bitrate=1000000 ! udpsink host=127.0.0.1 port=5000
+gst-launch-0.10 -v udpsrc port=5000 caps='video/mpeg, width=(int)640, height=(int)480, framerate=(fraction)25/1, mpegversion=(int)4, systemstream=(boolean)false' ! queue ! tee name=t t. ! queue !  ffdec_mpeg4 ! queue ! xvimagesink t. ! queue ! muxer.  mpegtsmux name=muxer ! filesink location="test_mpegtsmux.ts"
+
+#################################################################################
+
+x264enc: install gstreamer plugins ugly
+100-200%
+
+hohe latenz!!!! caps erforderlich! großer rechenaufwand
+gst-launch-0.10 -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=20/1 !  ffmpegcolorspace ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000
+
+gst-launch-0.10 udpsrc port=5000 caps='application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, sprop-parameter-sets=(string)\"Z01AHpJSgUB7YCIAAAMAAu5rKAAeLFss\\,aOvssg\\=\\=\", payload=(int)96, ssrc=(uint)1148260666, clock-base=(uint)2372277125, seqnum-base=(uint)55589' ! queue ! rtph264depay ! queue ! ffdec_h264 ! queue ! xvimagesink
+
+
+works better, bit faster
+gst-launch-0.10 -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=20/1  \
+  !  ffmpegcolorspace ! x264enc ! udpsink host=127.0.0.1 port=5000
+gst-launch-0.10 udpsrc port=5000  ! queue ! ffdec_h264 ! queue ! xvimagesink
+
+
+for testing purpose, works fine:
+gst-launch-0.10 v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=20/1 !  ffmpegcolorspace ! x264enc ! ffdec_h264 ! xvimagesink
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+jpegenc & dec: 
+andere ffmpeg varianten um nichts besser
+wird ab start der leitung gestreamt, mit payloader etwas schneller (subjektiv)
+load 35-37%
+
+ gst-launch-0.10 -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=25/1 !  ffmpegcolorspace ! jpegenc quality=80 ! udpsink host=127.0.0.1 port=5000  sync=false
+
+gst-launch-0.10 udpsrc port=5000 caps='image/jpeg, width=(int)640, height=(int)480, framerate=(fraction)25/1, pixel-aspect-ratio=(fraction)1/1' ! queue ! jpegdec ! queue ! xvimagesink
+
+# mit payloader:
+gst-launch-0.10 -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=25/1 !  ffmpegcolorspace ! jpegenc quality=80 ! rtpjpegpay ! udpsink host=127.0.0.1 port=5000  sync=false
+
+gst-launch-0.10 udpsrc port=5000 caps=' application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)JPEG, payload=(int)96, ssrc=(uint)1006979985, clock-base=(uint)312170047, seqnum-base=(uint)3174' ! rtpjpegdepay ! queue ! jpegdec ! queue ! xvimagesink
+
