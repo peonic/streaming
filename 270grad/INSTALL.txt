@@ -8,7 +8,7 @@
 
 * python-gst0.10, python-gst0.10-dev, python-gtk2, python-gobject, python < v2.6
 
-* v4l2loopback, use mercurial repo, http://code.google.com/p/v4l2loopback/source/checkout
+* v4l2loopback, use github repo from IOhannes, git://github.com/umlaeute/v4l2loopback.git
   * when loaded # of devices have to be defined i.e. modprobe v4l2loopback devices=10
 * gst-v4l2loopback, https://github.com/umlaeute/gst-v4l2loopback/
   + dh-autoreconf module-assistant debhelper mercurial mercurial-git

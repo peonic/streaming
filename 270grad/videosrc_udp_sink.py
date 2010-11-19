@@ -85,9 +85,9 @@ class Main:
     print "ready"
     self.running = "false"
 
-    self.mainloop = gobject.MainLoop(is_running=True)
-    # for i in range(self.number_of_streams):
-    #   self.pipeline_array[i].set_state(gst.STATE_PLAYING)
+    # self.mainloop = gobject.MainLoop(is_running=True)
+    for i in range(self.number_of_streams):
+      self.pipeline_array[i].set_state(gst.STATE_PLAYING)
 
     # input_thread = InputThread(self)
     # input_thread.start()
@@ -118,13 +118,16 @@ class Main:
   def OnQuit(self, widget):
     for i in range(self.number_of_streams):
       self.pipeline_array[i].set_state(gst.STATE_NULL)
-    mainloop.quit()
+    # mainloop.quit()
 
 #
 # enter into a mainloop
 #
 m = Main()
 m.run()
+loop = gobject.MainLoop()
+loop.run()
+
 sys.exit()
 #loop = gobject.MainLoop()
 #gobject.threads_init()
