@@ -34,7 +34,11 @@ class Main:
 
     # TODO: make a script with makes devices by id
     self.video_src = ["/dev/video0", "/dev/video1", "/dev/video2", "/dev/video3"]
-    host = ["127.0.0.1"]
+    host = "127.0.0.1"
+    if (len(sys.argv) > 0):
+      if len(sys.argv[1]) > 5 :
+        host = str(sys.argv[1])
+    print host
     baseport = 5000
     bitrate = 1000000
     
