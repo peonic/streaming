@@ -73,7 +73,7 @@ class Main:
       rtpmp4vpay = gst.element_factory_make("rtpmp4vpay", "rtpmp4vpay%s" % p_item)
 
       self.sink_array.append(gst.element_factory_make("udpsink", "udpsink%s" % p_item))
-      self.sink_array[p_item].set_property("host", host[p_item])
+      self.sink_array[p_item].set_property("host", host[0])
       self.sink_array[p_item].set_property("port", baseport + p_item)
 
       # adding the pipleine elements and linking them together
