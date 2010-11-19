@@ -26,17 +26,14 @@ from simpleOSC import *
 import pygst
 pygst.require("0.10")
 import gst
-import gobject
 import pygtk, gtk
 
 class Main:
 
   def __init__(self):
-    self.number_of_streams = 1 # for the range so its from 0 to 11 = 12 streams
+    self.number_of_streams = 2 # for the range so its from 0 to 11 = 12 streams
     self.recorded_stream_count = 0 # in filename
 
-    self.videosink = "v4l2loopback"
-    self.videosink_devs = ["/dev/video10", "/dev/video11"]
     self.videosink = "filesink"
     self.location_path = "videos/"
     self.filename = "test" 

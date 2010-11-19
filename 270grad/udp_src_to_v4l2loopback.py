@@ -32,7 +32,7 @@ import gobject
 class Main:
 
   def __init__(self):
-    self.number_of_streams = 3 # for the range so its from 0 to 11 = 12 streams
+    self.number_of_streams = 1 # for the range so its from 0 to 11 = 12 streams
     self.recorded_stream_count = 0 # in filename
 
     self.videosink = "v4l2loopback"
@@ -63,7 +63,7 @@ class Main:
       rtpmp4vdepay = gst.element_factory_make("rtpmp4vdepay", "rtpmp4vpay%s" % p_item)
       queuea = gst.element_factory_make("queue")
 
-      caps2 = gst.Caps("video/mpeg,width=640,height=480,framerate=25/1,mpegversion=4,systemstream=false")
+      caps2 = gst.Caps("video/mpeg,width=320,height=240,framerate=25/1,mpegversion=4,systemstream=false")
       filter2 = gst.element_factory_make("capsfilter", "filter2")
       filter2.set_property("caps", caps2)
       
