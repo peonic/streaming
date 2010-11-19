@@ -30,7 +30,7 @@ import gobject
 class Main:
 
   def __init__(self):
-    self.number_of_streams = 1 # for the range so its from 0 to 11 = 12 streams
+    self.number_of_streams = 4 # for the range so its from 0 to 11 = 12 streams
 
     # TODO: make a script with makes devices by id
     self.video_src = ["/dev/video0", "/dev/video1", "/dev/video2", "/dev/video3"]
