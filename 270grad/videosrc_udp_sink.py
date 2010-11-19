@@ -30,12 +30,12 @@ import gobject
 class Main:
 
   def __init__(self):
-    self.number_of_streams = 4 # for the range so its from 0 to 11 = 12 streams
+    self.number_of_streams = 3 # for the range so its from 0 to 11 = 12 streams
 
     # TODO: make a script with makes devices by id
     self.video_src = ["/dev/video0", "/dev/video1", "/dev/video2", "/dev/video3"]
     host = "127.0.0.1"
-    if (len(sys.argv) > 0):
+    if (len(sys.argv) > 1):
       if len(sys.argv[1]) > 5 :
         host = str(sys.argv[1])
     print host
@@ -77,7 +77,7 @@ class Main:
       rtpmp4vpay = gst.element_factory_make("rtpmp4vpay", "rtpmp4vpay%s" % p_item)
 
       self.sink_array.append(gst.element_factory_make("udpsink", "udpsink%s" % p_item))
-      self.sink_array[p_item].set_property("host", host[0])
+      self.sink_array[p_item].set_property("host", host)
       self.sink_array[p_item].set_property("port", baseport + p_item)
 
       # adding the pipleine elements and linking them together

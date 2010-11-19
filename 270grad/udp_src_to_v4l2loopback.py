@@ -27,7 +27,7 @@ import pygst
 pygst.require("0.10")
 import gst
 import gobject
-import pygtk, gtk
+#import pygtk, gtk
 
 class Main:
 
@@ -131,7 +131,7 @@ class Main:
   def OnQuit(self, widget):
     for i in range(self.number_of_streams):
       self.pipeline_array[i].set_state(gst.STATE_NULL)
-    gtk.main_quit()
+    # gtk.main_quit()
     
 
 
