@@ -63,7 +63,7 @@ class Main:
     self.sink_array = []
     self.bus_array = []
     for p_item in range(self.number_of_streams):
-      self.pipeline_array.append(gst.Pipeline("mypipeline%s" % p_item))
+      self.pipeline_array.append(gst.Pipeline("pipeline%s" % p_item))
 
       source = gst.element_factory_make("v4l2src","vsource" + str(p_item)) 
       source.set_property("device", self.video_src[p_item])
