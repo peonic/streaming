@@ -37,14 +37,14 @@ class Main:
     self.video_src = ["/dev/video0", "/dev/video1", "/dev/video2", "/dev/video3"]
     self.file_path = ["videos/", "videos/", "videos/", "videos/"]
     self.record_id = 0
-    self.host = "127.0.0.1"
+    self.host = "10.0.0.7"
+    self.baseport = 5000
+    self.bitrate = 90000 
     if (len(sys.argv) > 1):
       if len(sys.argv[1]) > 5 :
         host = str(sys.argv[1])
-    print host
-    self.baseport = 5000
-    self.bitrate = 1000000 
-    self.caps_string = "video/x-raw-yuv, width=640, height=480,framerate=25/1"
+    print "host: " + str(host) + " bitrate: " + str(bitrate)
+    self.caps_string = "video/x-raw-yuv, width=320, height=240,framerate=25/1"
 
   def init_OSC(self):    
     # osc
@@ -78,15 +78,18 @@ class Main:
 
       conv = gst.element_factory_make("ffmpegcolorspace")
 
-      avimux = gst.element_factory_make("avimux", "avimuxer_%s" % p_item)
-      queueb = gst.element_factory_make("queue")
+      encoder = gst.element_factory_make("ffenc_mpeg4", "ffenc_mpeg4_%s" % p_item)
+      encoder.set_property("bitrate", self.bitrate)
 
-      self.sink_array.append(gst.element_factory_make("filesink", "filesink%s" % p_item))
-      self.sink_array[p_item].set_property("location", self.file_path[p_item] + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi")
+      rtpmp4vpay = gst.element_factory_make("rtpmp4vpay", "rtpmp4vpay%s" % p_item)
+
+      self.sink_array.append(gst.element_factory_make("udpsink", "udpsink%s" % p_item))
+      self.sink_array[p_item].set_property("host", self.host)
+      self.sink_array[p_item].set_property("port", self.baseport + p_item)
 
       # adding the pipleine elements and linking them together
-      self.pipeline_array[p_item].add(source, scaler, rate, filter1, conv, avimux, self.sink_array[p_item])
-      gst.element_link_many(source, scaler, rate, filter1, conv, avimux, self.sink_array[p_item])
+      self.pipeline_array[p_item].add(source, scaler, rate, filter1, conv, encoder, rtpmp4vpay, self.sink_array[p_item])
+      gst.element_link_many(source, scaler, rate, filter1, conv, encoder, rtpmp4vpay, self.sink_array[p_item])
 
       self.bus_array.append(self.pipeline_array[p_item].get_bus())
       self.bus_array[p_item].add_signal_watch()
@@ -138,7 +141,6 @@ class Main:
       self.running = "true"
       for p_item in range(self.number_of_streams):
         print "set pipeline %s to play" % p_item
-        self.sink_array[p_item].set_property("location", self.file_path[p_item] + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi")
         self.pipeline_array[p_item].set_state(gst.STATE_PLAYING)
     else:
       self.running = "false"
