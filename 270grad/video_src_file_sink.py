@@ -103,7 +103,7 @@ class Main:
     print "pipelines initialized, focus gtk window and press s for starting recording"
     self.window.connect("key-press-event",self.on_window_key_press_event)
 
-    StartStop()
+    self.StartStop()
 
   def on_message(self, bus, message):
     t = message.type

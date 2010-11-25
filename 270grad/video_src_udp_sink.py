@@ -43,7 +43,7 @@ class Main:
     if (len(sys.argv) > 1):
       if len(sys.argv[1]) > 5 :
         host = str(sys.argv[1])
-    print "host: " + str(host) + " bitrate: " + str(bitrate)
+    print "host: " + str(self.host) + " bitrate: " + str(self.bitrate)
     self.caps_string = "video/x-raw-yuv, width=320, height=240,framerate=25/1"
 
   def init_OSC(self):    
@@ -106,7 +106,7 @@ class Main:
     print "pipelines initialized, focus gtk window and press s for starting recording"
     self.window.connect("key-press-event",self.on_window_key_press_event)
 
-    StartStop()
+    self.StartStop()
 
   def on_message(self, bus, message):
     t = message.type
