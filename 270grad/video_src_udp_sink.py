@@ -42,7 +42,7 @@ class Main:
     self.bitrate = 90000 
     if (len(sys.argv) > 1):
       if len(sys.argv[1]) > 5 :
-        host = str(sys.argv[1])
+        self.host = str(sys.argv[1])
     print "host: " + str(self.host) + " bitrate: " + str(self.bitrate)
     self.caps_string = "video/x-raw-yuv, width=320, height=240,framerate=25/1"
 
@@ -101,7 +101,7 @@ class Main:
     # init gtk for keyboard input
     self.init_gtk()
     self.init_pipeline()
-    self.init_OSC()
+    # self.init_OSC()
 
     print "pipelines initialized, focus gtk window and press s for starting recording"
     self.window.connect("key-press-event",self.on_window_key_press_event)

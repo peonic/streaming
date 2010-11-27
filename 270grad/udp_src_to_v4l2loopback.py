@@ -123,7 +123,10 @@ class Main:
       if len(sys.argv[1]) > 5 :
         host = str(sys.argv[1])
     print "host: " + str(self.host) + " bitrate: " + str(self.bitrate)
-    self.caps_string = "video/x-raw-yuv, width=320, height=240,framerate=25/1"
+    self.caps_string1 = "application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)%s, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96" % self.bitrate
+    print self.caps_string1
+    self.caps_string2 = "video/mpeg, width=320, height=240,framerate=25/1,mpegversion=4,systemstream=false "
+    self.caps_string3 = "video/x-raw-yuv, width=320, height=240,framerate=25/1"
 
   def init_OSC(self):    
     # osc
@@ -147,26 +150,32 @@ class Main:
       source = gst.element_factory_make("udpsrc","udp_source") 
       source.set_property("port", self.baseport + p_item)
 
-      caps = gst.Caps("application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96")
-      filter = gst.element_factory_make("capsfilter", "filter1")
-      filter.set_property("caps", caps)
+      caps1 = gst.Caps(self.caps_string1)
+      filter1 = gst.element_factory_make("capsfilter", "filter1")
+      filter1.set_property("caps", caps1)
 
       rtpmp4vdepay = gst.element_factory_make("rtpmp4vdepay", "rtpmp4vpay%s" % p_item)
       queuea = gst.element_factory_make("queue")
 
-      caps2 = gst.Caps("video/mpeg,width=640,height=480,framerate=25/1,mpegversion=4,systemstream=false")
+      caps2 = gst.Caps(self.caps_string2)
       filter2 = gst.element_factory_make("capsfilter", "filter2")
       filter2.set_property("caps", caps2)
       
       decoder = gst.element_factory_make("ffdec_mpeg4", "decoder%s" % p_item)
+
+      caps3 = gst.Caps(self.caps_string3)
+      filter3 = gst.element_factory_make("capsfilter", "filter3")
+      filter3.set_property("caps", caps3)
       queueb = gst.element_factory_make("queue")
+
+      conv = gst.element_factory_make("ffmpegcolorspace", "ffmpegcolorspace%s" % p_item)
 
       self.sink_array.append(gst.element_factory_make("v4l2loopback", "v4l2loopback%s" % p_item))
       self.sink_array[p_item].set_property("device",self.video_sink_devs[p_item])
 
       # adding the pipleine elements and linking them together
-      self.pipeline_array[p_item].add(source, filter,rtpmp4vdepay, filter2, queuea, decoder, queueb, self.sink_array[p_item])
-      gst.element_link_many(source, filter,rtpmp4vdepay, filter2, queuea, decoder, queueb, self.sink_array[p_item])
+      self.pipeline_array[p_item].add(source, filter1, rtpmp4vdepay, filter2, decoder, filter3, self.sink_array[p_item])
+      gst.element_link_many(source, filter1,rtpmp4vdepay, filter2, decoder, filter3, self.sink_array[p_item])
 
       self.bus_array.append(self.pipeline_array[p_item].get_bus())
       self.bus_array[p_item].add_signal_watch()
@@ -178,7 +187,7 @@ class Main:
     # init gtk for keyboard input
     self.init_gtk()
     self.init_pipeline()
-    self.init_OSC()
+    # self.init_OSC()
 
     print "pipelines initialized, focus gtk window and press s for starting recording"
     self.window.connect("key-press-event",self.on_window_key_press_event)

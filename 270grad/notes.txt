@@ -65,3 +65,17 @@ gst-launch-0.10 -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 !
 
 gst-launch-0.10 udpsrc port=5000 caps=' application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)JPEG, payload=(int)96, ssrc=(uint)1006979985, clock-base=(uint)312170047, seqnum-base=(uint)3174' ! rtpjpegdepay ! queue ! jpegdec ! queue ! xvimagesink
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨~~~~~~~~~~~~~~~~~~~~~~~~~~ v4l2 loopback
+
+wörks:
+gst-launch -vvv v4l2src ! videoscale ! videorate ! video/x-raw-yuv, width=640, height=480, framerate=25/1 ! ffmpegcolorspace ! ffenc_mpeg4 ! queue ! ffdec_mpeg4 ! queue ! ffmpegcolorspace !  v4l2loopback device=/dev/video2
+gst-launch -vvv v4l2src /dev/video2 ! audovideosink 
+
+gst-launch -vvv v4l2src ! videoscale ! videorate ! video/x-raw-yuv, width=640, height=480, framerate=25/1 ! ffmpegcolorspace ! jpegenc ! queue ! jpegdec ! queue ! ffmpegcolorspace !  v4l2loopback device=/dev/video1
+gst-launch -vvv v4l2src /dev/video1 ! audovideosink 
+
+
+gst-launch -v videotestsrc ! videoscale ! video/x-raw-yuv, width=640,height=480 ! ffmpegcolorspace ! jpegenc ! rtpjpegpay ! udpsink host=127.0.0.1 port=5000
+gst-launch -vvv udpsrc port=5000 ! application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)JPEG, payload=(int)96  ! rtpjpegdepay ! queue !  image/jpeg, framerate=(fraction)0/1 ! videorate !  image/jpeg, width=(int)640, height=(int)480, framerate=(fraction)30/1 ! jpegdec !  v4l2loopback
+
