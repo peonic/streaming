@@ -1,83 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# streaming for 270grad
-# by peter innerhofer
-
-# constructs 4 stream, ether to hdd or udpsink
-
-# keyboard commands: 
-#   's' = start/stop
-#   'f' = full-/unfullscreen
-#   'q' = quit
-
-# see the DrawingAreaFactory for arranig the video windows
-
-# currently jpegenc is used so put this pipeline in script
-
-##### mpeg4 enc ######
-
-# gst-launch-0.10 -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=25/1 !  ffmpegcolorspace ! ffenc_mpeg4 bitrate=1000000 ! udpsink host=127.0.0.1 port=5000
-# gst-launch-0.10 -v udpsrc port=5000 caps='video/mpeg, width=(int)640, height=(int)480, framerate=(fraction)25/1, mpegversion=(int)4, systemstream=(boolean)false' ! queue ! tee name=t t. ! queue !  ffdec_mpeg4 ! queue ! xvimagesink t. ! queue ! muxer.  mpegtsmux name=muxer ! filesink location="test_mpegtsmux.ts"
-
-import sys, os
-import socket, time
-from simpleOSC import *
-import pygst
-pygst.require("0.10")
-import gst
-import gobject
-#import pygtk, gtk
-
-class Main:
-
-  def __init__(self):
-    self.number_of_streams = 1 # for the range so its from 0 to 11 = 12 streams
-    self.recorded_stream_count = 0 # in filename
-
-    self.videosink = "v4l2loopback"
-    self.videosink_devs = ["/dev/video0", "/dev/video1", "/dev/video2"]
-    
-    baseport = 5000
-    
-    # osc
-    initOSCServer('', 7779)
-    # callback function, wenn recieving osc message
-    setOSCHandler("/startstopstream", self.start_stop_stream)
-
-
-    # Create GStreamer Pipeline
-    self.pipeline_array = []
-    self.sink_array = []
-    for p_item in range(self.number_of_streams):
-      self.pipeline_array.append(gst.Pipeline("pipeline%s" % p_item))
-
-      source = gst.element_factory_make("udpsrc","udp_source") 
-      source.set_property("port", baseport + p_item)
-
-      caps = gst.Caps("application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96")
-      filter = gst.element_factory_make("capsfilter", "filter1")
-      filter.set_property("caps", caps)
-
-      rtpmp4vdepay = gst.element_factory_make("rtpmp4vdepay", "rtpmp4vpay%s" % p_item)
-      queuea = gst.element_factory_make("queue")
-
-      caps2 = gst.Caps("video/mpeg,width=320,height=240,framerate=25/1,mpegversion=4,systemstream=false")
-      filter2 = gst.element_factory_make("capsfilter", "filter2")
-      filter2.set_property("caps", caps2)
-      
-      decoder = gst.element_factory_make("ffdec_mpeg4", "decoder%s" % p_item)
-      queueb = gst.element_factory_make("queue")
-
-      self.sink_array.append(gst.element_factory_make("v4l2loopback", "v4l2loopback%s" % p_item))
-      self.sink_array[p_item].set_property("device",self.videosink_devs[p_item])
-
-      # adding the pipleine elements and linking them together
-      self.pipeline_array[p_item].add(source, filter,rtpmp4vdepay, filter2, queuea, decoder, queueb, self.sink_array[p_item])
-      gst.element_link_many(source, filter,rtpmp4vdepay, filter2, queuea, decoder, queueb, self.sink_array[p_item])
-
-
-#!/usr/bin/env python
 #
 # streaming for 270grad
 # by peter innerhofer
@@ -123,8 +44,9 @@ class Main:
       if len(sys.argv[1]) > 5 :
         host = str(sys.argv[1])
     print "host: " + str(self.host) + " bitrate: " + str(self.bitrate)
-    self.caps_string1 = "application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)%s, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96" % self.bitrate
-    print self.caps_string1
+    # self.caps_string1 = "application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)%s, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96" % self.bitrate
+    self.caps_string1 = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd14043c1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)903112079, clock-base=(uint)1095309658, seqnum-base=(uint)64180"
+    print "caps: %s" % self.caps_string1
     self.caps_string2 = "video/mpeg, width=320, height=240,framerate=25/1,mpegversion=4,systemstream=false "
     self.caps_string3 = "video/x-raw-yuv, width=320, height=240,framerate=25/1"
 
@@ -174,8 +96,8 @@ class Main:
       self.sink_array[p_item].set_property("device",self.video_sink_devs[p_item])
 
       # adding the pipleine elements and linking them together
-      self.pipeline_array[p_item].add(source, filter1, rtpmp4vdepay, filter2, decoder, filter3, self.sink_array[p_item])
-      gst.element_link_many(source, filter1,rtpmp4vdepay, filter2, decoder, filter3, self.sink_array[p_item])
+      self.pipeline_array[p_item].add(source, filter1, rtpmp4vdepay, decoder, conv, self.sink_array[p_item])
+      gst.element_link_many(source, filter1,rtpmp4vdepay, decoder, conv, self.sink_array[p_item])
 
       self.bus_array.append(self.pipeline_array[p_item].get_bus())
       self.bus_array[p_item].add_signal_watch()
@@ -193,10 +115,14 @@ class Main:
     self.window.connect("key-press-event",self.on_window_key_press_event)
 
     self.StartStop()
+    for p_item in range(1,self.number_of_streams):
+      print "sink property:"
+      print self.sink_array[p_item].get_pad('sink').get_property('caps')
+
 
   def on_message(self, bus, message):
     t = message.type
-    print str(bus.get_name()) + ": message received, type: " + str(t)
+    # print str(bus.get_name()) + ": message received, type: " + str(t)
     if t == gst.MESSAGE_EOS:
       for p_item in range(1,self.number_of_streams):
         b = self.pipeline_array[p_item].get_bus()
@@ -210,6 +136,9 @@ class Main:
     elif t == gst.MESSAGE_WARNING:
       err, debug = message.parse_warning()
       print "Warning: %s" % err, debug
+    elif t == gst.MESSAGE_STATE_CHANGED:
+      oldstate, newstate, pending = message.parse_state_changed()
+      print "state changed: %s %s -> %s" % (oldstate, newstate, pending)
         
 
   def start_stop_stream(self,addr, tags, data, source):
@@ -228,6 +157,9 @@ class Main:
       for p_item in range(self.number_of_streams):
         print "set pipeline %s to play" % p_item
         self.pipeline_array[p_item].set_state(gst.STATE_PLAYING)
+        print "getting state"
+        #print self.pipeline_array[p_item].get_state()
+        print "caps : %s" % self.sink_array[p_item].get_pad('sink').get_property('caps')
     else:
       self.running = "false"
       self.record_id += 1

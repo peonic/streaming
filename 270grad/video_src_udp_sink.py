@@ -107,6 +107,9 @@ class Main:
     self.window.connect("key-press-event",self.on_window_key_press_event)
 
     self.StartStop()
+    for p_item in range(1,self.number_of_streams):
+      print "sink property:"
+      print self.sink_array[p_item].get_pad('sink').get_property('caps')
 
   def on_message(self, bus, message):
     t = message.type
@@ -142,6 +145,9 @@ class Main:
       for p_item in range(self.number_of_streams):
         print "set pipeline %s to play" % p_item
         self.pipeline_array[p_item].set_state(gst.STATE_PLAYING)
+        print "getting state"
+        #print self.pipeline_array[p_item].get_state()
+        print "caps : %s" % self.sink_array[p_item].get_pad('sink').get_property('caps')
     else:
       self.running = "false"
       self.record_id += 1

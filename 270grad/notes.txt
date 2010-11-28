@@ -68,12 +68,20 @@ gst-launch-0.10 udpsrc port=5000 caps=' application/x-rtp, media=(string)video, 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨~~~~~~~~~~~~~~~~~~~~~~~~~~ v4l2 loopback
 
+wörks better:
+gst-launch -vvv v4l2src ! videoscale ! videorate ! video/x-raw-yuv, width=640, height=480, framerate=25/1 ! ffmpegcolorspace ! ffenc_mpeg4 ! rtpmp4vpay ! udpsink host=127.0.0.1 port=5000
+gst-launch --gst-debug=GST_PIPELINE*:5 udpsrc port=5000 ! application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd14043c1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)903112079, clock-base=(uint)1095309658, seqnum-base=(uint)64180 ! rtpmp4vdepay ! ffdec_mpeg4 ! ffmpegcolorspace ! v4l2loopback
+gst-launch -vvv v4l2src device=/dev/video1 !  xvimagesink  
+
+
 wörks:
 gst-launch -vvv v4l2src ! videoscale ! videorate ! video/x-raw-yuv, width=640, height=480, framerate=25/1 ! ffmpegcolorspace ! ffenc_mpeg4 ! queue ! ffdec_mpeg4 ! queue ! ffmpegcolorspace !  v4l2loopback device=/dev/video2
 gst-launch -vvv v4l2src /dev/video2 ! audovideosink 
 
 gst-launch -vvv v4l2src ! videoscale ! videorate ! video/x-raw-yuv, width=640, height=480, framerate=25/1 ! ffmpegcolorspace ! jpegenc ! queue ! jpegdec ! queue ! ffmpegcolorspace !  v4l2loopback device=/dev/video1
 gst-launch -vvv v4l2src /dev/video1 ! audovideosink 
+
+
 
 
 gst-launch -v videotestsrc ! videoscale ! video/x-raw-yuv, width=640,height=480 ! ffmpegcolorspace ! jpegenc ! rtpjpegpay ! udpsink host=127.0.0.1 port=5000
