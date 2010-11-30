@@ -1,23 +1,30 @@
 #!/usr/bin/env python
-#
 # streaming for 270grad
 # by peter innerhofer
-
-# builds n streams (default 4) from v4lsrc, encodes them (ffenc_mpeg4), and send them to a udpsink (default 127.0.0.1)
-
+#
+# Description: 
+# builds n streams (default 4) from v4l2src, encodes them with xvid (ffenc_mpeg4), and send them via udp to a host (default 127.0.0.1 port=5000)
+# second pipeline will recieve the stream, decode it, and forward it to a v4l2loopback device
+# 
 # command line input: 
 #   's' = start/stop
 #   'q' = quit
-
+# 
 # OCS input:
 #   message: /startstopstream, 0 or 1
-
+#
 # see notes.txt for encoder decision
-
-##### mpeg4 enc ######
-
-# gst-launch-0.10 -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=25/1 !  ffmpegcolorspace ! ffenc_mpeg4 bitrate=1000000 ! rtpmp4vpay ! udpsink host=127.0.0.1 port=5000
-# gst-launch -ve udpsrc port=5001 ! "application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96" ! rtpmp4vdepay ! "video/mpeg,width=640,height=480,framerate=25/1,mpegversion=4,systemstream=false" ! ffdec_mpeg4 ! queue ! xvimagesink
+#
+##### gst-lauch pipelines ######
+#
+# encoding:
+# gst-launch -vvv v4l2src ! videoscale ! videorate ! video/x-raw-yuv, width=640, height=480, framerate=25/1 ! ffmpegcolorspace ! ffenc_mpeg4 ! rtpmp4vpay ! udpsink host=127.0.0.1 port=5000
+#
+# forwarding:
+# gst-launch -vvv udpsrc port=5000 ! application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd14043c1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)903112079, clock-base=(uint)1095309658, seqnum-base=(uint)64180 ! rtpmp4vdepay ! ffdec_mpeg4 ! ffmpegcolorspace ! v4l2loopback
+#
+# Anzeige:
+# gst-launch -vvv v4l2src device=/dev/video1 ! xvimagesink
 
 import sys, os
 import socket, time
@@ -34,7 +41,7 @@ class Main:
     self.number_of_streams = 1 # for the range so its from 0 to 11 = 12 streams
 
     # TODO: make a script with makes devices by id
-    self.video_sink_devs = ["/dev/video4", "/dev/video5", "/dev/video6", "/dev/video7"]
+    self.video_sink_devs = ["/dev/video1", "/dev/video5", "/dev/video6", "/dev/video7"]
     self.file_path = ["videos/", "videos/", "videos/", "videos/"]
     self.record_id = 0
     self.host = "10.0.0.7"
@@ -42,10 +49,11 @@ class Main:
     self.bitrate = 90000 
     if (len(sys.argv) > 1):
       if len(sys.argv[1]) > 5 :
-        host = str(sys.argv[1])
+        self.host = str(sys.argv[1])
     print "host: " + str(self.host) + " bitrate: " + str(self.bitrate)
-    # self.caps_string1 = "application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)%s, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96" % self.bitrate
-    self.caps_string1 = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd14043c1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)903112079, clock-base=(uint)1095309658, seqnum-base=(uint)64180"
+
+    self.caps_string1 = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd0a041e1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)3644377598, clock-base=(uint)861502242, seqnum-base=(uint)23879"
+
     print "caps: %s" % self.caps_string1
     self.caps_string2 = "video/mpeg, width=320, height=240,framerate=25/1,mpegversion=4,systemstream=false "
     self.caps_string3 = "video/x-raw-yuv, width=320, height=240,framerate=25/1"
@@ -77,18 +85,8 @@ class Main:
       filter1.set_property("caps", caps1)
 
       rtpmp4vdepay = gst.element_factory_make("rtpmp4vdepay", "rtpmp4vpay%s" % p_item)
-      queuea = gst.element_factory_make("queue")
-
-      caps2 = gst.Caps(self.caps_string2)
-      filter2 = gst.element_factory_make("capsfilter", "filter2")
-      filter2.set_property("caps", caps2)
       
       decoder = gst.element_factory_make("ffdec_mpeg4", "decoder%s" % p_item)
-
-      caps3 = gst.Caps(self.caps_string3)
-      filter3 = gst.element_factory_make("capsfilter", "filter3")
-      filter3.set_property("caps", caps3)
-      queueb = gst.element_factory_make("queue")
 
       conv = gst.element_factory_make("ffmpegcolorspace", "ffmpegcolorspace%s" % p_item)
 

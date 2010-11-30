@@ -19,7 +19,7 @@ libv4l-dev !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 package list:
 
-dh-autoreconf module-assistant debhelper mercurial mercurial-git python-gst0.10 python-gst0.10-dev python-gtk2 python-gobject python gstreamer0.10-ffmpeg gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-gnomevfs gstreamer-tools gstreamer0.10-alsa gstreamer0.10-nice gstreamer0.10-tools
+dh-autoreconf autoconf dh-make module-assistant debhelper debian-keyring g++-multilib g++-4.4-multilib gcc-4.4-doc libstdc++6-4.4-dbg mercurial mercurial-git git git-svn git-doc git-arch gitk git-gui python-gst0.10 python-gst0.10-dev python-gtk2 python-gobject python gstreamer0.10-ffmpeg gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-gnomevfs gstreamer-tools gstreamer0.10-alsa gstreamer0.10-nice gstreamer0.10-tools gstreamer0.10-doc libtool-doc sidplay-base xsidplay libstdc++6-4.4-doc automaken kdiff3 tkdiff meld  python-gst0.10-dbg
 
 sugested:
   autoconf2.13 autoconf-archive gnu-standards autoconf-doc dh-make libsaxon-java libxalan2-java docbook-xsl-saxon fop xalan dbtoepub debian-keyring g++-multilib g++-4.4-multilib gcc-4.4-doc libstdc++6-4.4-dbg gettext-doc git-doc
@@ -35,5 +35,4 @@ sugested:
 * test gst-loopback: 
    gst-launch -v videotestsrc ! video/x-raw-yuv,width=640,height=480,framerate=25/1 ! ffmpegcolorspace ! v4l2loopback
    gst-launch -v v4l2src device=/dev/video4 ! autovideosink
-
 
