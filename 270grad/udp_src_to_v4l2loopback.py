@@ -9,7 +9,10 @@
 # command line input: 
 #   's' = start/stop
 #   'q' = quit
-# 
+#
+# IMPORTANT: load v4l2loopback kernel module
+#   sudo modprobe v4l2loopback devices=10 
+#
 # OCS input:
 #   message: /startstopstream, 0 or 1
 #
@@ -134,9 +137,9 @@ class Main:
     elif t == gst.MESSAGE_WARNING:
       err, debug = message.parse_warning()
       print "Warning: %s" % err, debug
-    elif t == gst.MESSAGE_STATE_CHANGED:
-      oldstate, newstate, pending = message.parse_state_changed()
-      print "state changed: %s %s -> %s" % (oldstate, newstate, pending)
+    #elif t == gst.MESSAGE_STATE_CHANGED:
+    #  oldstate, newstate, pending = message.parse_state_changed()
+    #  print "state changed: %s %s -> %s" % (oldstate, newstate, pending)
         
 
   def start_stop_stream(self,addr, tags, data, source):

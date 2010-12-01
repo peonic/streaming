@@ -113,7 +113,7 @@ class Main:
 
   def on_message(self, bus, message):
     t = message.type
-    print str(bus.get_name()) + ": message received, type: " + str(t)
+    #print str(bus.get_name()) + ": message received, type: " + str(t)
     if t == gst.MESSAGE_EOS:
       for p_item in range(1,self.number_of_streams):
         b = self.pipeline_array[p_item].get_bus()
