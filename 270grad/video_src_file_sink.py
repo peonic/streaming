@@ -40,10 +40,10 @@ class Main:
     self.host = "127.0.0.1"
     if (len(sys.argv) > 1):
       if len(sys.argv[1]) > 5 :
-        host = str(sys.argv[1])
-    print host
+        self.host = str(sys.argv[1])
+    print self.host
     self.baseport = 5000
-    self.bitrate = 1000000 
+    self.bitrate = 500000 
     self.caps_string = "video/x-raw-yuv, width=640, height=480,framerate=25/1"
 
   def init_OSC(self):    
@@ -98,20 +98,24 @@ class Main:
     # init gtk for keyboard input
     self.init_gtk()
     self.init_pipeline()
-    self.init_OSC()
+    # self.init_OSC()
 
-    print "pipelines initialized, focus gtk window and press s for starting recording"
+    print "pipelines initialized, focus on gtk window and press s for stop/start recording (important to get valid files), press q for quit"
     self.window.connect("key-press-event",self.on_window_key_press_event)
 
+    print "pipelines will start automatically"
     self.StartStop()
 
   def on_message(self, bus, message):
     t = message.type
-    print str(bus.get_name()) + ": message received, type: " + str(t)
+    #print str(bus.get_name()) + ": message received, type: " + str(t)
     if t == gst.MESSAGE_EOS:
+      print "received EnOffStream(EOS) signal from bus %s" % bus.get_name()
       for p_item in range(1,self.number_of_streams):
         b = self.pipeline_array[p_item].get_bus()
+        print "received EnOffStream(EOS) signal, current pipeline bus %s" % b.get_name()
         if b.get_name() == bus.get_name():
+          print "received EnOffStream(EOS) signal, pipeline %s will stop" % p_item
           self.pipeline_array[p_item].set_state(gst.STATE_NULL)
     elif t == gst.MESSAGE_ERROR:
       err, debug = message.parse_error()
@@ -137,13 +141,13 @@ class Main:
     if self.running == "false":
       self.running = "true"
       for p_item in range(self.number_of_streams):
-        print "set pipeline %s to play" % p_item
+        print "set pipeline %s to state:play" % p_item
         self.sink_array[p_item].set_property("location", self.file_path[p_item] + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi")
         self.pipeline_array[p_item].set_state(gst.STATE_PLAYING)
     else:
       self.running = "false"
       self.record_id += 1
-      print "stream stopped"
+      print "stop button pressed"
       for p_item in range(self.number_of_streams):
         print "will send EOS to src element: vsource" + str(p_item ) + " device: " + self.video_src[p_item]
 	if self.pipeline_array[p_item].get_by_name("vsource" + str(p_item)).send_event(gst.event_new_eos()):
