@@ -99,6 +99,4 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
 m = ChildStreaming()
 m.run()
 
-#gtk.gdk.threads_init()
-#gtk.main()
 

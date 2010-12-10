@@ -36,28 +36,9 @@ import pygst
 pygst.require("0.10")
 import gst
 import gtk, pygtk, gobject
+import basestreamingclass
 
-
-class Main:
-
-  def __init__(self):
-    self.number_of_streams = 1 # for the range so its from 0 to 11 = 12 streams
-
-    # TODO: make a script with makes devices by id
-    self.video_sink_devs = ["/dev/video1", "/dev/video5", "/dev/video6", "/dev/video7"]
-    self.file_names = ["recorded_camid_0_nr0.avi", "recorded_camid_1_nr0.avi", "recorded_camid_2_nr0.avi", "recorded_camid_3_nr0.avi"]
-    self.file_path = "/home/peter/uni/telematik studium/praktika/github-streaming-repo/270grad/videos/"
-
-  def init_OSC(self):    
-    # osc
-    initOSCServer('', 7780)
-    # callback function, wenn recieving osc message
-    setOSCHandler("/startstopstream", self.start_stop_stream)
-
-  def init_gtk(self):
-    self.window = gtk.Window()
-    self.window.connect("destroy", gtk.main_quit, "WM destroy")
-    self.window.show_all()
+class ChildStreaming(basestreamingclass.BaseStreaming):
 
   def init_pipeline(self):
     # Create GStreamer Pipeline
@@ -66,27 +47,12 @@ class Main:
     self.bus_array = []
     for p_item in range(self.number_of_streams):
       self.pipeline_array.append(gst.element_factory_make("playbin2", "playbin%s" % p_item))
-      self.pipeline_array[p_item].set_property("uri", "file://" + self.file_path + self.file_names[p_item])      
-
-      #source = gst.element_factory_make("filesrc","filesrc%s" % p_item) 
-      #source.set_property("location", self.file_path + self.file_names[p_item])
-
-      #caps1 = gst.Caps(self.caps_string1)
-      #filter1 = gst.element_factory_make("capsfilter", "filter1")
-      #filter1.set_property("caps", caps1)
-
-      #rtpmp4vdepay = gst.element_factory_make("rtpmp4vdepay", "rtpmp4vpay%s" % p_item)
-      
-      #decoder = gst.element_factory_make("ffdec_mpeg4", "decoder%s" % p_item)
-
-      #conv = gst.element_factory_make("ffmpegcolorspace", "ffmpegcolorspace%s" % p_item)
+      self.pipeline_array[p_item].set_property("uri", "file://" + str(os.getcwd()) + self.file_path[0] + self.file_names[p_item])      
 
       self.sink_array.append(gst.element_factory_make("v4l2loopback", "v4l2loopback%s" % p_item))
       self.sink_array[p_item].set_property("device",self.video_sink_devs[p_item])
 
-      #self.playbin2 = gst.element_factory_make("playbin2", "playbin2")
       self.pipeline_array[p_item].set_property("video-sink", self.sink_array[p_item])
-      # adding the pipleine elements and linking them together
 
       self.bus_array.append(self.pipeline_array[p_item].get_bus())
       self.bus_array[p_item].add_signal_watch()
@@ -104,43 +70,6 @@ class Main:
     self.window.connect("key-press-event",self.on_window_key_press_event)
 
     self.StartStop()
-    for p_item in range(1,self.number_of_streams):
-      print "sink property:"
-      print self.sink_array[p_item].get_pad('sink').get_property('caps')
-
-
-  def on_message(self, bus, message):
-    t = message.type
-    # print str(bus.get_name()) + ": message received, type: " + str(t)
-    if t == gst.MESSAGE_EOS:
-      for p_item in range(1,self.number_of_streams):
-        b = self.pipeline_array[p_item].get_bus()
-        if b.get_name() == bus.get_name():
-          self.pipeline_array[p_item].set_state(gst.STATE_NULL)
-      self.running = "false"
-      self.StartStop()
-    elif t == gst.MESSAGE_ERROR:
-      err, debug = message.parse_error()
-      print "Error: %s" % err, debug
-      for p_item in range(1,self.number_of_streams):
-        self.pipeline_array[p_item].set_state(gst.STATE_NULL)
-    elif t == gst.MESSAGE_WARNING:
-      err, debug = message.parse_warning()
-      print "Warning: %s" % err, debug
-    #elif t == gst.MESSAGE_STATE_CHANGED:
-    #  oldstate, newstate, pending = message.parse_state_changed()
-    #  print "state changed: %s %s -> %s" % (oldstate, newstate, pending)
-        
-
-  def start_stop_stream(self,addr, tags, data, source):
-    print "---"
-    print "received new osc msg from %s" % getUrlStr(source)
-    print "with addr : %s" % addr
-    print "typetags : %s" % tags
-    print "the actual data is :%s" % data
-    print "---"
-    if 0 <= data[0] and data[0] <= 1:
-      self.StartStop()
    
   def StartStop(self):
     if self.running == "false":
@@ -163,42 +92,6 @@ class Main:
         #  print "EOS event NOT send, try to send it to pipeline"
         #  self.pipeline_array[p_item].send_event(gst.event_new_eos())
 
-  def OnQuit(self, widget):
-    for p_item in range(self.number_of_streams):
-      if self.pipeline_array[p_item].get_state() == gst.STATE_PLAYING:
-        self.pipeline_array[p_item].set_state(gst.STATE_NULL)
-      self.bus_array[p_item].remove_signal_watch()
-    gtk.main_quit()
-
-  def on_window_key_press_event(self,window,event):
-    print event.state
-    print event.keyval
-    if event.keyval == 115:
-      self.StartStop()
-    if event.keyval == 102:
-      self.Fullscreen()
-    if event.keyval == 113:
-      self.OnQuit(self.window)
-    if 49 <= event.keyval and event.keyval <= 49 + self.number_of_streams:
-      self.switch_display_stream(event.keyval % 49 )
-
-
-#
-# enter into a mainloop
-#
-
-m = Main()
+m = ChildStreaming()
 m.run()
-
-gtk.gdk.threads_init()
-gtk.main()
-
-# loop = gobject.MainLoop()
-# loop.run()
-
-# sys.exit()
-#loop = gobject.MainLoop()
-#gobject.threads_init()
-#Main()
-#
 

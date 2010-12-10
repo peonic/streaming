@@ -26,36 +26,9 @@ import pygst
 pygst.require("0.10")
 import gst
 import gtk, pygtk, gobject
+import basestreamingclass
 
-
-class Main:
-
-  def __init__(self):
-    self.number_of_streams = 1 # for the range so its from 0 to 11 = 12 streams
-
-    # TODO: make a script with makes devices by id
-    self.video_src = ["/dev/video0", "/dev/video1", "/dev/video2", "/dev/video3"]
-    self.file_path = ["videos/", "videos/", "videos/", "videos/"]
-    self.record_id = 0
-    self.host = "10.0.0.7"
-    self.baseport = 5000
-    self.bitrate = 90000 
-    if (len(sys.argv) > 1):
-      if len(sys.argv[1]) > 5 :
-        self.host = str(sys.argv[1])
-    print "host: " + str(self.host) + " bitrate: " + str(self.bitrate)
-    self.caps_string = "video/x-raw-yuv, width=320, height=240,framerate=25/1"
-
-  def init_OSC(self):    
-    # osc
-    initOSCServer('', 7780)
-    # callback function, wenn recieving osc message
-    setOSCHandler("/startstopstream", self.start_stop_stream)
-
-  def init_gtk(self):
-    self.window = gtk.Window()
-    self.window.connect("destroy", gtk.main_quit, "WM destroy")
-    self.window.show_all()
+class ChildStreaming(basestreamingclass.BaseStreaming):
 
   def init_pipeline(self):
     # Create GStreamer Pipeline
@@ -111,91 +84,7 @@ class Main:
       print "sink property:"
       print self.sink_array[p_item].get_pad('sink').get_property('caps')
 
-  def on_message(self, bus, message):
-    t = message.type
-    #print str(bus.get_name()) + ": message received, type: " + str(t)
-    if t == gst.MESSAGE_EOS:
-      for p_item in range(1,self.number_of_streams):
-        b = self.pipeline_array[p_item].get_bus()
-        if b.get_name() == bus.get_name():
-          self.pipeline_array[p_item].set_state(gst.STATE_NULL)
-    elif t == gst.MESSAGE_ERROR:
-      err, debug = message.parse_error()
-      print "Error: %s" % err, debug
-      for p_item in range(1,self.number_of_streams):
-        self.pipeline_array[p_item].set_state(gst.STATE_NULL)
-    elif t == gst.MESSAGE_WARNING:
-      err, debug = message.parse_warning()
-      print "Warning: %s" % err, debug
-        
 
-  def start_stop_stream(self,addr, tags, data, source):
-    print "---"
-    print "received new osc msg from %s" % getUrlStr(source)
-    print "with addr : %s" % addr
-    print "typetags : %s" % tags
-    print "the actual data is :%s" % data
-    print "---"
-    if 0 <= data[0] and data[0] <= 1:
-      self.StartStop()
-   
-  def StartStop(self):
-    if self.running == "false":
-      self.running = "true"
-      for p_item in range(self.number_of_streams):
-        print "set pipeline %s to play" % p_item
-        self.pipeline_array[p_item].set_state(gst.STATE_PLAYING)
-        print "getting state"
-        #print self.pipeline_array[p_item].get_state()
-        print "caps : %s" % self.sink_array[p_item].get_pad('sink').get_property('caps')
-    else:
-      self.running = "false"
-      self.record_id += 1
-      print "stream stopped"
-      for p_item in range(self.number_of_streams):
-        print "will send EOS to src element: vsource" + str(p_item ) + " device: " + self.video_src[p_item]
-	if self.pipeline_array[p_item].get_by_name("vsource" + str(p_item)).send_event(gst.event_new_eos()):
-          print "EOS event sucessfully send"
-        else:
-          print "EOS event NOT send, try to send it to pipeline"
-          self.pipeline_array[p_item].send_event(gst.event_new_eos())
-
-  def OnQuit(self, widget):
-    for p_item in range(self.number_of_streams):
-      if self.pipeline_array[p_item].get_state() == gst.STATE_PLAYING:
-        self.pipeline_array[p_item].set_state(gst.STATE_NULL)
-      self.bus_array[p_item].remove_signal_watch()
-    gtk.main_quit()
-
-  def on_window_key_press_event(self,window,event):
-    print event.state
-    print event.keyval
-    if event.keyval == 115:
-      self.StartStop()
-    if event.keyval == 102:
-      self.Fullscreen()
-    if event.keyval == 113:
-      self.OnQuit(self.window)
-    if 49 <= event.keyval and event.keyval <= 49 + self.number_of_streams:
-      self.switch_display_stream(event.keyval % 49 )
-
-
-#
-# enter into a mainloop
-#
-
-m = Main()
+m = Childstreaming()
 m.run()
-
-gtk.gdk.threads_init()
-gtk.main()
-
-# loop = gobject.MainLoop()
-# loop.run()
-
-# sys.exit()
-#loop = gobject.MainLoop()
-#gobject.threads_init()
-#Main()
-#
 
