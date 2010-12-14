@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-# streaming for 270grad
 # by peter innerhofer
 #
+# streaming solution for "extended view stream" for the CoMeDia project
+
 # Description: 
 # builds n streams (default 4) from v4l2src, encodes them with xvid (ffenc_mpeg4), and send them via udp to a host (default 127.0.0.1 port=5000)
 # second pipeline will recieve the stream, decode it, and forward it to a v4l2loopback device
@@ -46,6 +47,7 @@ class BaseStreaming:
     'f' for fullscreen (only gtk applications)
 
   OSC: port: 7780 messagestring: /startstopstream
+  TODO: close udp socket!!!!
 
   Message Handling:
   it is very important that basic message handling functions are implemented, 
@@ -88,6 +90,8 @@ class BaseStreaming:
     self.caps_raw_fullsize = "video/x-raw-yuv, width=640, height=480,framerate=25/1"
     self.caps_raw_halfsize = "video/x-raw-yuv, width=320, height=240,framerate=25/1"
 
+    print "parrent created"
+
   def init_OSC(self):    
     initOSCServer('', self.osc_baseport)
     # callback function, wenn recieving osc message
@@ -111,15 +115,16 @@ class BaseStreaming:
       self.create_pipeline(p_item)  
 
   def create_pipeline(self,p_item):
-    print "should create pipeline"
+    print "parent create pipeline"
 
   def parse_pipeline(self,gst_pipeline_string):
-    self.pipeline_array.append(gst.parse_launch(gst_pipeline_string)
+    self.pipeline_array.append(gst.parse_launch(gst_pipeline_string))
     self.bus_array.append(self.pipeline_array[-1].get_bus())
     self.bus_array[-1].add_signal_watch()
     self.bus_array[-1].connect("message",self.on_message)
 
   def run(self):
+
     print "initializing"
     self.running = "false"
     # init gtk for keyboard input
@@ -190,7 +195,7 @@ class BaseStreaming:
       self.bus_array[p_item].remove_signal_watch()
     if self.gtk_init:
       gtk.main_quit()
-    else
+    else:
       self.mainloop.quit()
 
   def on_window_key_press_event(self,window,event):

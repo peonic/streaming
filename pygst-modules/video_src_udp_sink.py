@@ -6,7 +6,7 @@
 # builds n streams (default 4) from v4lsrc, encodes them (ffenc_mpeg4), and send them to a udpsink (default 127.0.0.1)
 
 # command line input: 
-#   's' = start/stop
+#   's' = start/stops
 #   'q' = quit
 
 # OCS input:
@@ -30,11 +30,14 @@ import basestreamingclass
 
 class ChildStreaming(basestreamingclass.BaseStreaming):
 
+  def __init__(self):
+    print "childstream created"
+    basestreamingclass.BaseStreaming.__init__(self)
+
   def init_pipeline(self):
-    # Create GStreamer Pipeline
-    self.pipeline_array = []
-    self.sink_array = []
-    self.bus_array = []
+    basestreamingclass.BaseStreaming.init_pipeline(self)
+    print "init pipeline"
+
     for p_item in range(self.number_of_streams):
       self.pipeline_array.append(gst.Pipeline("pipeline%s" % p_item))
 
@@ -43,7 +46,7 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
 
       scaler = gst.element_factory_make("videoscale", "vscale")
 
-      caps1 = gst.Caps(self.caps_string)
+      caps1 = gst.Caps(self.caps_raw_fullsize)
       filter1 = gst.element_factory_make("capsfilter", "filter")
       filter1.set_property("caps", caps1)
 
@@ -72,19 +75,23 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
     print "initializing"
     self.running = "false"
     # init gtk for keyboard input
-    self.init_gtk()
+    #self.init_gtk()
     self.init_pipeline()
     # self.init_OSC()
 
     print "pipelines initialized, focus gtk window and press s for starting recording"
-    self.window.connect("key-press-event",self.on_window_key_press_event)
+    # self.window.connect("key-press-event",self.on_window_key_press_event)
 
     self.StartStop()
     for p_item in range(1,self.number_of_streams):
       print "sink property:"
       print self.sink_array[p_item].get_pad('sink').get_property('caps')
 
+    gobject.threads_init()
+    self.mainloop = gobject.MainLoop()
+    self.mainloop.run()
+    print "exit"
 
-m = Childstreaming()
+m = ChildStreaming()
 m.run()
 

@@ -40,18 +40,21 @@ import basestreamingclass
 
 class ChildStreaming(basestreamingclass.BaseStreaming):
 
+  def __init__(self):
+    print "childstream created"
+    basestreamingclass.BaseStreaming.__init__(self)
+
   def init_pipeline(self):
+    basestreamingclass.BaseStreaming.init_pipeline(self)
+    print "init pipeline"
     # Create GStreamer Pipeline
-    self.pipeline_array = []
-    self.sink_array = []
-    self.bus_array = []
     for p_item in range(self.number_of_streams):
       self.pipeline_array.append(gst.Pipeline("pipeline%s" % p_item))
 
       source = gst.element_factory_make("udpsrc","udp_source") 
       source.set_property("port", self.baseport + p_item)
 
-      caps1 = gst.Caps(self.caps_string1)
+      caps1 = gst.Caps(self.caps_app)
       filter1 = gst.element_factory_make("capsfilter", "filter1")
       filter1.set_property("caps", caps1)
 
@@ -76,7 +79,7 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
     print "initializing"
     self.running = "false"
     # init gtk for keyboard input
-    self.init_gtk()
+    # self.init_gtk()
     self.init_pipeline()
     # self.init_OSC()
 
