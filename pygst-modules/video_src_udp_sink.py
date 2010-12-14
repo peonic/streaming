@@ -41,7 +41,7 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
     for p_item in range(self.number_of_streams):
       self.pipeline_array.append(gst.Pipeline("pipeline%s" % p_item))
 
-      source = gst.element_factory_make("v4l2src","vsource" + str(p_item)) 
+      source = gst.element_factory_make("v4l2src","vsource") 
       source.set_property("device", self.video_src[p_item])
 
       scaler = gst.element_factory_make("videoscale", "vscale")
@@ -83,9 +83,11 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
     # self.window.connect("key-press-event",self.on_window_key_press_event)
 
     self.StartStop()
-    for p_item in range(1,self.number_of_streams):
+    print "started"
+    for p_item in range(self.number_of_streams):
+      print self.pipeline_array[0].get_by_name("vsource").get_pad('src').get_property('caps')
       print "sink property:"
-      print self.sink_array[p_item].get_pad('sink').get_property('caps')
+      print self.sink_array[0].get_pad('sink').get_property('caps')
 
     gobject.threads_init()
     self.mainloop = gobject.MainLoop()

@@ -85,7 +85,7 @@ class BaseStreaming:
     # for pipelines with mpgeg encoding and decoding
     self.bitrate = 90000 
 
-    self.caps_app = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd0a041e1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)3644377598, clock-base=(uint)861502242, seqnum-base=(uint)23879"
+    #self.caps_app = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd0a041e1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)3644377598, clock-base=(uint)861502242, seqnum-base=(uint)23879"
     self.caps_mpeg4 = "video/mpeg, width=320, height=240,framerate=25/1,mpegversion=4,systemstream=false "
     self.caps_raw_fullsize = "video/x-raw-yuv, width=640, height=480,framerate=25/1"
     self.caps_raw_halfsize = "video/x-raw-yuv, width=320, height=240,framerate=25/1"
@@ -174,7 +174,7 @@ class BaseStreaming:
         print "set pipeline %s to play" % p_item
         self.pipeline_array[p_item].set_state(gst.STATE_PLAYING)
         print "getting state"
-        #print self.pipeline_array[p_item].get_state()
+        print self.pipeline_array[p_item].get_state()
         print "caps : %s" % self.sink_array[p_item].get_pad('sink').get_property('caps')
     else:
       self.running = "false"

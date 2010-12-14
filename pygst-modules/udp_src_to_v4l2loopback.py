@@ -43,6 +43,8 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
   def __init__(self):
     print "childstream created"
     basestreamingclass.BaseStreaming.__init__(self)
+    self.caps_app = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd14043c1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)2908696696, clock-base=(uint)1768976456, seqnum-base=(uint)6682"
+
 
   def init_pipeline(self):
     basestreamingclass.BaseStreaming.init_pipeline(self)
@@ -51,7 +53,7 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
     for p_item in range(self.number_of_streams):
       self.pipeline_array.append(gst.Pipeline("pipeline%s" % p_item))
 
-      source = gst.element_factory_make("udpsrc","udp_source") 
+      source = gst.element_factory_make("udpsrc","vsource") 
       source.set_property("port", self.baseport + p_item)
 
       caps1 = gst.Caps(self.caps_app)
@@ -86,7 +88,8 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
     print "pipelines initialized, focus gtk window and press s for starting recording"
 
     self.StartStop()
-    for p_item in range(1,self.number_of_streams):
+    for p_item in range(self.number_of_streams):
+      print self.pipeline_array[0].get_by_name("vsource").get_pad('src').get_property('caps')
       print "sink property:"
       print self.sink_array[p_item].get_pad('sink').get_property('caps')
     
