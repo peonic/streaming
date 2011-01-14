@@ -22,7 +22,7 @@
 
 import sys, os
 import socket, time
-from simpleOSC import *
+import oschandler, OSC
 import pygst
 pygst.require("0.10")
 import gst
@@ -61,7 +61,7 @@ class BaseStreaming:
     # all common init's:
     self.number_of_streams = 1
     self.gtk_init = 0
-    self.osc_baseport = 7780
+    self.osc_receive_address = '127.0.0.1', 8000
     self.osc_message_string = "/startstopstream"
 
     # for pipes with video sources and video sinks
@@ -93,9 +93,9 @@ class BaseStreaming:
     print "parrent created"
 
   def init_OSC(self):    
-    initOSCServer('', self.osc_baseport)
-    # callback function, wenn recieving osc message
-    setOSCHandler(self.osc_message_string, self.start_stop_stream)
+    self.osc_server = oschandler.OSCHandler(self.osc_receive_address)
+    self.osc_server.addMsgHandler(self.osc_message_string,self.start_stop_stream)
+    self.osc_server.start()
 
   def init_gtk(self):
     self.gtk_init = 1
@@ -159,7 +159,7 @@ class BaseStreaming:
 
   def start_stop_stream(self,addr, tags, data, source):
     print "---"
-    print "received new osc msg from %s" % getUrlStr(source)
+    # print "received new osc msg from %s" % OSC.getUrlStr(source)
     print "with addr : %s" % addr
     print "typetags : %s" % tags
     print "the actual data is :%s" % data
@@ -173,7 +173,7 @@ class BaseStreaming:
       for p_item in range(self.number_of_streams):
         print "set pipeline %s to play" % p_item
         self.pipeline_array[p_item].set_state(gst.STATE_PLAYING)
-        print "state: %s" % self.pipeline_array[p_item].get_state()
+        # print "state: %s" % self.pipeline_array[p_item].get_state()
         print "caps : %s" % self.sink_array[p_item].get_pad('sink').get_property('caps')
     else:
       self.running = "false"
@@ -188,6 +188,10 @@ class BaseStreaming:
           self.pipeline_array[p_item].send_event(gst.event_new_eos())
 
   def OnQuit(self, widget):
+    self.quit()
+
+  def quit(self):
+    self.osc_server.close()
     for p_item in range(self.number_of_streams):
       if self.pipeline_array[p_item].get_state() == gst.STATE_PLAYING:
         self.pipeline_array[p_item].set_state(gst.STATE_NULL)

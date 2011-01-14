@@ -21,7 +21,6 @@
 
 import sys, os
 import socket, time
-from simpleOSC import *
 import pygst
 pygst.require("0.10")
 import gst
@@ -77,7 +76,7 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
     # init gtk for keyboard input
     #self.init_gtk()
     self.init_pipeline()
-    # self.init_OSC()
+    self.init_OSC()
 
     print "pipelines initialized, focus gtk window and press s for starting recording"
     # self.window.connect("key-press-event",self.on_window_key_press_event)
@@ -94,6 +93,11 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
     self.mainloop.run()
     print "exit"
 
-m = ChildStreaming()
-m.run()
+  def quit(self):
+    basestreamingclass.BaseStreaming.quit(self)
 
+try :
+  m = ChildStreaming()
+  m.run()
+except KeyboardInterrupt :
+  m.quit()
