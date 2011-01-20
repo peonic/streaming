@@ -21,6 +21,7 @@
 #
 
 import sys, os
+import ConfigParser
 import socket, time
 import oschandler, OSC
 import pygst
@@ -57,7 +58,12 @@ class BaseStreaming:
   pipeline can be parsed as they are in commandline 
   """
 
-  def __init__(self):
+  def __init__(self):  
+    self.config = ConfigParser.ConfigParser()
+    self.config.read(".\config.ini")
+	
+    self.config_sections = self.config.sections()
+	
     # all common init's:
     self.number_of_streams = 1
     self.gtk_init = 0
@@ -111,8 +117,8 @@ class BaseStreaming:
     self.pipeline_array = []
     self.sink_array = []
     self.bus_array = []
-    for p_item in range(self.number_of_streams):
-      self.create_pipeline(p_item)  
+    #for p_item in range(self.number_of_streams):
+    #  self.create_pipeline(p_item)  
 
   def create_pipeline(self,p_item):
     print "parent create pipeline"
