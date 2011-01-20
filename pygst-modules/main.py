@@ -16,6 +16,7 @@ import udp_src_to_filesink
 import file_src_to_v4l2loopback
 import video_src_udp_sink
 import udp_src_to_v4l2loopback
+import video_src_file_sink
 
 class BaseStreaming:
   """
@@ -101,10 +102,13 @@ class BaseStreaming:
     #self.pipeline_array.append(file_src_to_v4l2loopback.FileSrcToV4l2Loopback(self.config))
     #self.pipeline_array[-1].create_pipeline(0,"/videos/test.avi")
     
-    self.pipeline_array.append(video_src_udp_sink.VideoSrcToUDPSink(self.config))
-    self.pipeline_array[-1].create_pipeline(0)
+    #self.pipeline_array.append(video_src_udp_sink.VideoSrcToUDPSink(self.config))
+    #self.pipeline_array[-1].create_pipeline(0)
     
-    self.pipeline_array.append(udp_src_to_v4l2loopback.UDPSrcToV4l2Loopback(self.config))
+    #self.pipeline_array.append(udp_src_to_v4l2loopback.UDPSrcToV4l2Loopback(self.config))
+    #self.pipeline_array[-1].create_pipeline(0)
+    
+    self.pipeline_array.append(video_src_file_sink.VideoSrcToFileSink(self.config))
     self.pipeline_array[-1].create_pipeline(0)
     
     print "Pipeline('s) initialized"
@@ -151,12 +155,12 @@ class BaseStreaming:
       p.stop()
       time.sleep(1)
       p.quit()
-	if self.config.getint("OSC","init"):
-		self.osc_server.close()
-	if self.config.getint("GTK","Init"):
-		gtk.main_quit()
-	else:
-		self.mainloop.quit()
+    if self.config.getint("OSC","init"):
+      self.osc_server.close()
+    if self.config.getint("GTK","Init"):
+      gtk.main_quit()
+    else:
+      self.mainloop.quit()
 
   def on_window_key_press_event(self,window,event):
     print event.state

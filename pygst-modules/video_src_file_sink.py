@@ -26,11 +26,11 @@ class VideoSrcToFileSink(gstreamerpipeline.Pipeline):
 		self.pipeline = gst.Pipeline("pipeline%s" % p_item)
 
 		self.source = gst.element_factory_make("v4l2src","vsource") 
-		self.source.set_property("device", self.config.get("VideoSrc","VideoSrc%s" % p_item)
+		self.source.set_property("device", self.config.get("VideoSrc","VideoSrc%s" % p_item))
 
 		scaler = gst.element_factory_make("videoscale", "vscale")
 
-		caps1 = gst.Caps(self.config.get("Caps","RawFullsize")
+		caps1 = gst.Caps(self.config.get("Caps","RawFullsize"))
 		filter1 = gst.element_factory_make("capsfilter", "filter")
 		filter1.set_property("caps", caps1)
 
@@ -41,7 +41,7 @@ class VideoSrcToFileSink(gstreamerpipeline.Pipeline):
 		queueb = gst.element_factory_make("queue")
 
 		self.sink = gst.element_factory_make("filesink", "filesink%s" % p_item)   
-		self.sink.set_property("location", self.file_path[p_item] + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi")
+		self.sink.set_property("location", self.config.get("Recorder","filepath") + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi")
 
 		# adding the pipleine elements and linking them together
 		self.pipeline.add(self.source, scaler, rate, filter1, conv, avimux, self.sink)
