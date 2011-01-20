@@ -26,6 +26,7 @@ class OSCHandler:
 
   def addMsgHandler(self,osc_message_string,function):
     # callback function, wenn recieving osc message
+    print "Register Callback-function: %s" % osc_message_string
     self.osc_server.addMsgHandler(osc_message_string, function)
 
   def printAddressSpace(self):
@@ -36,7 +37,7 @@ class OSCHandler:
 
   def start(self):
     # Start OSCServer
-    print "\nStarting OSCServer. Use ctrl-C to quit."
+    print "\nStarting OSCServer."
     self.st = threading.Thread( target = self.osc_server.serve_forever )
     self.st.start()
 
