@@ -30,6 +30,17 @@ import basestreamingclass
 
 class ChildStreaming(basestreamingclass.BaseStreaming):
 
+  def __init__(self):
+    print "childstream created"
+    basestreamingclass.BaseStreaming.__init__(self)
+
+  def init_pipeline(self):
+    basestreamingclass.BaseStreaming.init_pipeline(self)
+    print "init pipeline"
+    
+    for p_item in range(self.number_of_streams):
+		print "create pipeline %s" % p_item
+		self.create_pipeline(p_item)
 
   def create_pipeline(self,p_item):
     self.pipeline_array.append(gst.Pipeline("pipeline%s" % p_item))
@@ -39,7 +50,7 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
 
     scaler = gst.element_factory_make("videoscale", "vscale")
 
-    caps1 = gst.Caps(self.caps_string)
+    caps1 = gst.Caps(self.caps_raw_fullsize)
     filter1 = gst.element_factory_make("capsfilter", "filter")
     filter1.set_property("caps", caps1)
 
@@ -65,35 +76,30 @@ class ChildStreaming(basestreamingclass.BaseStreaming):
     print "initializing"
     self.running = "false"
     # init gtk for keyboard input
-    self.init_gtk()
+    #self.init_gtk()
     self.init_pipeline()
     # self.init_OSC()
 
     print "pipelines initialized, focus on gtk window and press s for stop/start recording (important to get valid files), press q for quit"
-    self.window.connect("key-press-event",self.on_window_key_press_event)
+    # self.window.connect("key-press-event",self.on_window_key_press_event)
 
     print "pipelines will start automatically"
     self.StartStop()
+    for p_item in range(self.number_of_streams):
+      print self.pipeline_array[0].get_by_name("vsource%s" % p_item).get_pad('src').get_property('caps')
+      print "sink property:"
+      print self.sink_array[0].get_pad('sink').get_property('caps')
 
-  def StartStop(self):
-    if self.running == "false":
-      self.running = "true"
-      for p_item in range(self.number_of_streams):
-        print "set pipeline %s to state:play" % p_item
-        self.sink_array[p_item].set_property("location", self.file_path[p_item] + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi")
-        self.pipeline_array[p_item].set_state(gst.STATE_PLAYING)
-    else:
-      self.running = "false"
-      self.record_id += 1
-      print "stop button pressed"
-      for p_item in range(self.number_of_streams):
-        print "will send EOS to src element: vsource" + str(p_item ) + " device: " + self.video_src[p_item]
-	if self.pipeline_array[p_item].get_by_name("vsource" + str(p_item)).send_event(gst.event_new_eos()):
-          print "EOS event sucessfully send"
-        else:
-          print "EOS event NOT send, try to send it to pipeline"
-          self.pipeline_array[p_item].send_event(gst.event_new_eos())
+    gobject.threads_init()
+    self.mainloop = gobject.MainLoop()
+    self.mainloop.run()
+    print "exit"
 
+  def quit(self):
+    basestreamingclass.BaseStreaming.quit(self)
 
-m = ChildStreaming()
-m.run()
+try :
+  m = ChildStreaming()
+  m.run()
+except KeyboardInterrupt :
+  m.quit()
