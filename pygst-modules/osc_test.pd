@@ -1,4 +1,4 @@
-#N canvas 855 82 1004 630 10;
+#N canvas 856 111 1004 630 10;
 #X declare -lib mrpeach;
 #X obj 50 32 import mrpeach;
 #X obj 28 250 udpsend;
@@ -13,6 +13,7 @@
 ! ffmpegcolorspace ! ffenc_mpeg4 bitrate=200000 ! rtpmp4vpay ! udpsink
 host=127.0.0.1 port=5000 name=vsink];
 #X msg 129 145 send /stream/start \$1;
+#X msg 597 147 send /print/caps 1;
 #X connect 2 0 1 0;
 #X connect 3 0 9 0;
 #X connect 4 0 9 0;
@@ -20,3 +21,4 @@ host=127.0.0.1 port=5000 name=vsink];
 #X connect 6 0 2 0;
 #X connect 8 0 6 0;
 #X connect 9 0 2 0;
+#X connect 10 0 2 0;

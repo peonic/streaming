@@ -1,103 +1,57 @@
-#!/usr/bin/env python
-#
 # streaming for 270grad
 # by peter innerhofer
 
-# builds n streams (default 4) from v4lsrc, encodes them (ffenc_mpeg4), and send them to a udpsink (default 127.0.0.1)
-
-# command line input: 
-#   's' = start/stops
-#   'q' = quit
-
-# OCS input:
-#   message: /startstopstream, 0 or 1
-
-# see notes.txt for encoder decision
-
-##### mpeg4 enc ######
-
-# gst-launch-0.10 -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=25/1 !  ffmpegcolorspace ! ffenc_mpeg4 bitrate=1000000 ! rtpmp4vpay ! udpsink host=127.0.0.1 port=5000
-# gst-launch -ve udpsrc port=5001 ! "application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96" ! rtpmp4vdepay ! "video/mpeg,width=640,height=480,framerate=25/1,mpegversion=4,systemstream=false" ! ffdec_mpeg4 ! queue ! xvimagesink
-
 import sys, os
 import socket, time
-import pygst
-pygst.require("0.10")
-import gst
-import gtk, pygtk, gobject
-import basestreamingclass
+import gst, pygst
+import gstreamerpipeline
 
-class ChildStreaming(basestreamingclass.BaseStreaming):
+class VideoSrcToUDPSink(gstreamerpipeline.Pipeline):
 
-  def __init__(self):
-    print "childstream created"
-    basestreamingclass.BaseStreaming.__init__(self)
+	""" Gstreamer Pipeline which stream's a video from v4l2src and streams
+		it to a udp socket. The stream is encoded with mpeg4's divx. see in 
+		the config file to change bitrate
+		
+		TODO: a elegant way to write caps to a file, because the caps always
+		changing, especially wen changing the bitrate
+		
+		test at commandline:
+		$ gst-launch -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=25/1 !  ffmpegcolorspace ! ffenc_mpeg4 bitrate=200000 ! rtpmp4vpay ! udpsink host=127.0.0.1 port=5000
+		$ gst-launch -ve udpsrc port=5000 ! "application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96" ! rtpmp4vdepay ! "video/mpeg,width=640,height=480,framerate=25/1,mpegversion=4,systemstream=false" ! ffdec_mpeg4 ! queue ! xvimagesink
+	"""
+	
+	def __init__(self,config):
+		gstreamerpipeline.Pipeline.__init__(self,config)
 
-  def init_pipeline(self):
-    basestreamingclass.BaseStreaming.init_pipeline(self)
-    print "init pipeline"
+	def create_pipeline(self,p_item):
+		self.pipeline = gst.Pipeline("pipeline%s" % p_item)
 
-    for p_item in range(self.number_of_streams):
-      self.pipeline_array.append(gst.Pipeline("pipeline%s" % p_item))
+		print "video src dev: " + self.config.get("VideoSrc", "VideoSrc%s" % p_item)
+		self.source = gst.element_factory_make("v4l2src","vsource") 
+		self.source.set_property("device", self.config.get("VideoSrc", "VideoSrc%s" % p_item))
 
-      source = gst.element_factory_make("v4l2src","vsource") 
-      source.set_property("device", self.video_src[p_item])
+		scaler = gst.element_factory_make("videoscale", "vscale")
 
-      scaler = gst.element_factory_make("videoscale", "vscale")
+		caps1 = gst.Caps(self.config.get("Caps","RawHalfsize"))
+		filter1 = gst.element_factory_make("capsfilter", "filter")
+		filter1.set_property("caps", caps1)
 
-      caps1 = gst.Caps(self.caps_raw_fullsize)
-      filter1 = gst.element_factory_make("capsfilter", "filter")
-      filter1.set_property("caps", caps1)
+		rate = gst.element_factory_make("videorate", "vrate")
+		conv = gst.element_factory_make("ffmpegcolorspace")
 
-      rate = gst.element_factory_make("videorate", "vrate")
+		encoder = gst.element_factory_make("ffenc_mpeg4", "ffenc_mpeg4_%s" % p_item)
+		encoder.set_property("bitrate", self.config.getint("Encoder","Bitrate"))
 
-      conv = gst.element_factory_make("ffmpegcolorspace")
+		rtpmp4vpay = gst.element_factory_make("rtpmp4vpay", "rtpmp4vpay%s" % p_item)
 
-      encoder = gst.element_factory_make("ffenc_mpeg4", "ffenc_mpeg4_%s" % p_item)
-      encoder.set_property("bitrate", self.bitrate)
+		self.sink = gst.element_factory_make("udpsink", "udpsink%s" % p_item)
+		self.sink.set_property("host", self.config.get("UDP%s" % p_item, "host"))
+		self.sink.set_property("port", self.config.getint("UDP%s" % p_item, "port"))
 
-      rtpmp4vpay = gst.element_factory_make("rtpmp4vpay", "rtpmp4vpay%s" % p_item)
+		# adding the pipleine elements and linking them together
+		self.pipeline.add(self.source, scaler, rate, filter1, conv, encoder, rtpmp4vpay, self.sink)
+		gst.element_link_many(self.source, scaler, rate, filter1, conv, encoder, rtpmp4vpay, self.sink)
 
-      self.sink_array.append(gst.element_factory_make("udpsink", "udpsink%s" % p_item))
-      self.sink_array[p_item].set_property("host", self.host)
-      self.sink_array[p_item].set_property("port", self.baseport + p_item)
-
-      # adding the pipleine elements and linking them together
-      self.pipeline_array[p_item].add(source, scaler, rate, filter1, conv, encoder, rtpmp4vpay, self.sink_array[p_item])
-      gst.element_link_many(source, scaler, rate, filter1, conv, encoder, rtpmp4vpay, self.sink_array[p_item])
-
-      self.bus_array.append(self.pipeline_array[p_item].get_bus())
-      self.bus_array[p_item].add_signal_watch()
-      self.bus_array[p_item].connect("message",self.on_message)
-
-  def run(self):
-    print "initializing"
-    self.running = "false"
-    # init gtk for keyboard input
-    #self.init_gtk()
-    self.init_pipeline()
-    self.init_OSC()
-
-    print "pipelines initialized, focus gtk window and press s for starting recording"
-    # self.window.connect("key-press-event",self.on_window_key_press_event)
-
-    self.StartStop()
-    print "started"
-    for p_item in range(self.number_of_streams):
-      print self.pipeline_array[0].get_by_name("vsource").get_pad('src').get_property('caps')
-      print "sink property:"
-      print self.sink_array[0].get_pad('sink').get_property('caps')
-
-    gobject.threads_init()
-    self.mainloop = gobject.MainLoop()
-    self.mainloop.run()
-    print "exit"
-
-  def quit(self):
-    basestreamingclass.BaseStreaming.quit(self)
-
-try :
-  m = ChildStreaming()
-  m.run()
-except KeyboardInterrupt :
-  m.quit()
+		self.bus = self.pipeline.get_bus()
+		self.bus.add_signal_watch()
+		self.bus.connect("message",self.on_message)

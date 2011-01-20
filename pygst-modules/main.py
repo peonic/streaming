@@ -3,23 +3,6 @@
 #
 # streaming solution for "extended view stream" for the CoMeDia project
 
-# Description: 
-# builds n streams (default 4) from v4l2src, encodes them with xvid (ffenc_mpeg4), and send them via udp to a host (default 127.0.0.1 port=5000)
-# second pipeline will recieve the stream, decode it, and forward it to a v4l2loopback device
-# 
-# command line input: 
-#   's' = start/stop
-#   'q' = quit
-#
-# IMPORTANT: load v4l2loopback kernel module
-#   sudo modprobe v4l2loopback devices=10 
-#
-# OCS input:
-#   message: /startstopstream, 0 or 1
-#
-# see notes.txt for encoder decision
-#
-
 import sys, os
 import ConfigParser
 import socket, time
@@ -31,6 +14,8 @@ import gtk, pygtk, gobject
 import gstreamerpipeline
 import udp_src_to_filesink
 import file_src_to_v4l2loopback
+import video_src_udp_sink
+import udp_src_to_v4l2loopback
 
 class BaseStreaming:
   """
@@ -71,6 +56,7 @@ class BaseStreaming:
     self.osc_server = oschandler.OSCHandler((self.config.get("OSC","ServerAddress"),self.config.getint("OSC","Port")))
     self.osc_server.addMsgHandler(self.config.get("OSC","StreamStart"),self.start_stop_stream)
     self.osc_server.addMsgHandler(self.config.get("OSC","CreatePipelineFromString"),self.create_pipeline_from_osc_string)
+    self.osc_server.addMsgHandler(self.config.get("OSC","PrintCaps"),self.osc_print_caps)
     self.osc_server.start()
 
   def init_gtk(self):
@@ -112,8 +98,14 @@ class BaseStreaming:
     #self.pipeline_array.append(udp_src_to_filesink.UDPSrcToFileSink(self.config))
     #self.pipeline_array[-1].create_pipeline(0)
     
-    self.pipeline_array.append(file_src_to_v4l2loopback.FileSrcToV4l2Loopback(self.config))
-    self.pipeline_array[-1].create_pipeline(0,"/videos/test.avi")
+    #self.pipeline_array.append(file_src_to_v4l2loopback.FileSrcToV4l2Loopback(self.config))
+    #self.pipeline_array[-1].create_pipeline(0,"/videos/test.avi")
+    
+    self.pipeline_array.append(video_src_udp_sink.VideoSrcToUDPSink(self.config))
+    self.pipeline_array[-1].create_pipeline(0)
+    
+    self.pipeline_array.append(udp_src_to_v4l2loopback.UDPSrcToV4l2Loopback(self.config))
+    self.pipeline_array[-1].create_pipeline(0)
     
     print "Pipeline('s) initialized"
     if self.config.getint("OSC","Init"):
@@ -144,22 +136,21 @@ class BaseStreaming:
       self.StartStop()
    
   def StartStop(self):
-    for p_item in range(self.config.getint("Common","NumberOfStreams")):
-      self.pipeline_array[p_item].StartStop()
-      
+    for p in self.pipeline_array:
+      p.StartStop()
+    
   def ready(self):
-    for p_item in range(self.config.getint("Common","NumberOfStreams")):
-      self.pipeline_array[p_item].ready()
+    for p in self.pipeline_array:
+      p.ready()
       
   def OnQuit(self, widget):
     self.quit()
 
   def quit(self):
-	for p_item in range(self.config.getint("Common","NumberOfStreams")):
-		self.pipeline_array[p_item].stop()
-		self.pipeline_array[p_item].quit()
-		
-	time.sleep(1)
+    for p in self.pipeline_array:
+      p.stop()
+      time.sleep(1)
+      p.quit()
 	if self.config.getint("OSC","init"):
 		self.osc_server.close()
 	if self.config.getint("GTK","Init"):
@@ -176,6 +167,9 @@ class BaseStreaming:
       self.Fullscreen()
     if event.keyval == 113:
       self.OnQuit(self.window)
+      
+  def osc_print_caps(self,addr, tags, data, source):
+	  self.pipeline_array[-1].print_caps()
 
 try :
 	print "\ncreating Streaming Server \n\npress Ctrl-C to exit\n"

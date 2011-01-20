@@ -77,23 +77,18 @@ class Pipeline:
 			self.stop()
 
 	def start(self):
-		state = self.pipeline.get_state()
-		print str(state)
-		if gst.STATE_PLAYING == state:
-			print "pipeline already running"
 		if self.running == "false":
 			self.running = "true"
 		print "set pipeline to play"
 		self.pipeline.set_state(gst.STATE_PLAYING)
-		print "state: %s" % str(self.pipeline.get_state())
+		#print "state: %s" % str(self.pipeline.get_state())
 		print "caps : %s" % str(self.sink.get_pad('sink').get_property('caps'))
 
 	def stop(self):
 		if self.running == "true":
 			self.running = "false"
-		print "will send EOS to src element: vsource"
-		#if self.pipeline.get_by_name("vsource").send_event(gst.event_new_eos()):
-		if self.pipeline.send_event(gst.event_new_eos()):
+		print "will send EOS to src element"
+		if self.source.send_event(gst.event_new_eos()):
 			print "EOS event sucessfully send"
 		else:
 			print "EOS event NOT send, try to send it to pipeline"
@@ -103,7 +98,7 @@ class Pipeline:
 		if self.running == "false":
 			print "set pipeline to state ready"
 			self.pipeline.set_state(gst.STATE_READY)
-			print "state: %s" % str(self.pipeline.get_state())
+			#print "state: %s" % str(self.pipeline.get_state())
 
 	def on_message(self, bus, message):
 		t = message.type
@@ -119,11 +114,8 @@ class Pipeline:
 			err, debug = message.parse_warning()
 			print "Warning: %s" % err, debug
 
+	def print_caps(self):
+		print "\n caps: " + str(self.sink.get_pad('sink').get_property('caps'))
+
 	def quit(self):
 		self.bus.remove_signal_watch()
-
-# m = Pipeline()
-# m.start()
-# gobject.threads_init()
-# mainloop = gobject.MainLoop()
-# mainloop.run()
