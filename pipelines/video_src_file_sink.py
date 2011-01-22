@@ -23,6 +23,9 @@ class VideoSrcToFileSink(gstreamerpipeline.Pipeline):
 		self.record_id = 0
 
 	def create_pipeline(self,p_item):
+		print "\n -- creating VideoSrcToFileSink Pipeline -- \n"
+		self.number = p_item
+		
 		self.pipeline = gst.Pipeline("pipeline%s" % p_item)
 
 		self.source = gst.element_factory_make("v4l2src","vsource") 

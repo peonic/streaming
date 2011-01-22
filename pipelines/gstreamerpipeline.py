@@ -13,30 +13,9 @@ import gtk, pygtk, gobject
 class Pipeline:
 
 	"""
-	Base Streaming Class:
+	Base Pipeline Class:
 
-	Template Class for Gstreamer application. Basic functions for controlling, message handling 
-	pipeline parsing and viewing.
-
-	Controlling the pipeline can be done with 3 diffrent methods. 
-	* commandline input
-	* keyboard input in the gtk window
-	* send OSC messages
-
-	until now only basic controll function are implemented:
-	's' for start/stop (OSC message '1' or '0')
-	'q' for quit
-	'f' for fullscreen (only gtk applications)
-		
-	OSC: port: 7780 messagestring: /startstopstream
-	TODO: close udp socket!!!!
-
-	Message Handling:
-	it is very important that basic message handling functions are implemented, 
-	specially for writing files on hdd. a multiplexer (z.b avimux) or the filesink need
-	a EOS (EndOfStream) message for closing the files properly.
-
-	pipeline can be parsed as they are in commandline 
+	controlls the pipeline
 	"""
 
 	def __init__(self,config=0):
@@ -79,15 +58,15 @@ class Pipeline:
 	def start(self):
 		if self.running == "false":
 			self.running = "true"
-		print "set pipeline to play"
+		print "Start Pipeline"
 		self.pipeline.set_state(gst.STATE_PLAYING)
 		#print "state: %s" % str(self.pipeline.get_state())
-		print "caps : %s" % str(self.sink.get_pad('sink').get_property('caps'))
+		#print "caps : %s" % str(self.sink.get_pad('sink').get_property('caps'))
 
 	def stop(self):
 		if self.running == "true":
 			self.running = "false"
-		print "will send EOS to src element"
+		print "Send EnOffStream(EOS) to source element"
 		if self.source.send_event(gst.event_new_eos()):
 			print "EOS event sucessfully send"
 		else:

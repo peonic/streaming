@@ -8,22 +8,26 @@ import gstreamerpipeline
 
 class VideoSrcToUDPSink(gstreamerpipeline.Pipeline):
 
-	""" Gstreamer Pipeline which stream's a video from v4l2src and streams
-		it to a udp socket. The stream is encoded with mpeg4's divx. see in 
-		the config file to change bitrate
+	""" 
+	Gstreamer Pipeline which stream's a video from v4l2src and streams
+	it to a udp socket. The stream is encoded with mpeg4's divx. see in 
+	the config file to change bitrate
 		
-		TODO: a elegant way to write caps to a file, because the caps always
-		changing, especially wen changing the bitrate
+	TODO: a elegant way to write caps to a file, because the caps always
+	changing, especially wen changing the bitrate
 		
-		test at commandline:
-		$ gst-launch -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=25/1 !  ffmpegcolorspace ! ffenc_mpeg4 bitrate=200000 ! rtpmp4vpay ! udpsink host=127.0.0.1 port=5000
-		$ gst-launch -ve udpsrc port=5000 ! "application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96" ! rtpmp4vdepay ! "video/mpeg,width=640,height=480,framerate=25/1,mpegversion=4,systemstream=false" ! ffdec_mpeg4 ! queue ! xvimagesink
+	test at commandline:
+	$ gst-launch -v v4l2src ! videoscale ! video/x-raw-yuv,width=640,height=480 ! videorate ! video/x-raw-yuv,framerate=25/1 !  ffmpegcolorspace ! ffenc_mpeg4 bitrate=200000 ! rtpmp4vpay ! udpsink host=127.0.0.1 port=5000
+	$ gst-launch -ve udpsrc port=5000 ! "application/x-rtp, media=(string)video, payload=(int)96, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, payload=(int)96" ! rtpmp4vdepay ! "video/mpeg,width=640,height=480,framerate=25/1,mpegversion=4,systemstream=false" ! ffdec_mpeg4 ! queue ! xvimagesink
 	"""
 	
 	def __init__(self,config):
 		gstreamerpipeline.Pipeline.__init__(self,config)
 
 	def create_pipeline(self,p_item):
+		print "\n -- creating VideoSrcToUDPSink Pipeline -- \n"
+		self.number = p_item
+		
 		self.pipeline = gst.Pipeline("pipeline%s" % p_item)
 
 		print "video src dev: " + self.config.get("VideoSrc", "VideoSrc%s" % p_item)

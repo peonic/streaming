@@ -1,0 +1,35 @@
+Installation
+============
+
+OSC
+===
+ * pyOSC, to install, simply run, $ sudo ./setup.py install, Link: https://trac.v2.nl/wiki/pyOSC
+
+Gstreamer
+=========
+ * all gstreamer stuff
+ * python-gst0.10, python-gst0.10-dev, python-gtk2, python-gobject, python 
+
+V4l2 Loopback
+=============
+
+ * v4l2loopback, use github repo from IOhannes, https://github.com/umlaeute/v4l2loopback
+   * when loaded number of devices have can be defined i.e. 
+   $ sudo modprobe v4l2loopback devices=10
+ * gst-v4l2loopback, from IOhannes, https://github.com/umlaeute/gst-v4l2loopback/
+
+debian packages:
+ * dh-autoreconf module-assistant debhelper mercurial mercurial-git libv4l-dev
+
+
+TESTING the Installation
+========================
+
+ * load kernel module: 
+ 
+ $ sudo modprobe v4l2loopback devices=3
+
+ * test gst-loopback: 
+   gst-launch -v videotestsrc ! video/x-raw-yuv,width=640,height=480,framerate=25/1 ! ffmpegcolorspace ! v4l2loopback
+   gst-launch -v v4l2src device=/dev/video4 ! autovideosink
+

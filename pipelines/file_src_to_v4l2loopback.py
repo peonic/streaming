@@ -12,22 +12,26 @@ import gstreamerpipeline
 
 class FileSrcToV4l2Loopback(gstreamerpipeline.Pipeline):
 
-	""" Gstreamer Pipeline which stream's a video from file to a 
-		video4linux2 Loopback device. This device can be opened in any 
-		other application e.g puredata
+	""" 
+	Gstreamer Pipeline which stream's a video from file to a 
+	video4linux2 Loopback device. This device can be opened in any 
+	other application e.g puredata
 		
-		be sure to have the v4l2loopback kernel module loaded!
-		read INSTALL.txt for more information
+	be sure to have the v4l2loopback kernel module loaded!
+	read INSTALL.txt for more information
 		
-		test at commandline:
-		$ gst-launch playbin2 uri=file:///home/user/videos/test.avi video-sink="v4l2loopback device=/dev/video1"
-		$ gst-launch v4l2src device=/dev/video1 ! xvimagesink
+	test at commandline:
+	$ gst-launch playbin2 uri=file:///home/user/videos/test.avi video-sink="v4l2loopback device=/dev/video1"
+	$ gst-launch v4l2src device=/dev/video1 ! xvimagesink
 	"""
 	
 	def __init__(self,config):
 		gstreamerpipeline.Pipeline.__init__(self,config)
 		
 	def create_pipeline(self,p_item,filepath):
+		print "\n -- creating FileSrcToV4l2Loopback Pipeline -- \n"
+		self.number = p_item
+
 		self.pipeline = gst.element_factory_make("playbin2", "vsource")
 		
 		print "\n\n" + "file://" + str(os.getcwd()) + filepath

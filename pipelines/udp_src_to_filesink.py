@@ -17,6 +17,9 @@ class UDPSrcToFileSink(gstreamerpipeline.Pipeline):
 		self.record_id = 0
 
 	def create_pipeline(self,p_item):
+		print "\n -- creating UDPSrcToFileSink Pipeline -- \n"
+		self.number = p_item
+
 		self.record_id = 0
 		self.pipeline = gst.Pipeline("pipeline%s" % p_item)
 
