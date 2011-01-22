@@ -12,11 +12,11 @@ pygst.require("0.10")
 import gst
 import gtk, pygtk, gobject
 import gstreamerpipeline
-import udp_src_to_filesink
-import file_src_to_v4l2loopback
-import video_src_udp_sink
-import udp_src_to_v4l2loopback
-import video_src_file_sink
+from udp_src_to_filesink import UDPSrcToFileSink
+from file_src_to_v4l2loopback import FileSrcToV4l2Loopback
+from video_src_udp_sink import VideoSrcToUDPSink
+from udp_src_to_v4l2loopback import UDPSrcToV4l2Loopback
+from video_src_file_sink import VideoSrcToFileSink
 
 class BaseStreaming:
   """
@@ -58,7 +58,14 @@ class BaseStreaming:
     self.osc_server.addMsgHandler(self.config.get("OSC","StreamStart"),self.start_stop_stream)
     self.osc_server.addMsgHandler(self.config.get("OSC","CreatePipelineFromString"),self.create_pipeline_from_osc_string)
     self.osc_server.addMsgHandler(self.config.get("OSC","PrintCaps"),self.osc_print_caps)
+    self.osc_server.addMsgHandler(self.config.get("OSC","StreamFactoryCreate"),self.pipeline_factory)
+    self.osc_server.addMsgHandler(self.config.get("OSC","StreamDelete"),self.delete_pipeline)
     self.osc_server.start()
+
+  def factory(self, className, args):
+    aClass = getattr(__import__(__name__),className)
+    return aClass(args)
+    #return apply(aClass, args)
 
   def init_gtk(self):
     self.gtk_init = 1
@@ -67,16 +74,14 @@ class BaseStreaming:
     self.window.connect("key-press-event",self.on_window_key_press_event)
     self.window.show_all()
 
-  def init_pipeline(self):
-    # Create GStreamer Pipeline
-    self.pipeline_array = []
-    
-    for p_item in range(self.config.getint("Common","NumberOfStreams")):
-		print "stream init"
-    #  self.create_pipeline(p_item)  
-
-  def create_pipeline(self,p_item):
-    print "parent create pipeline"
+  def pipeline_factory(self,addr, tags, data, source):
+    print "recieved osc message: /stream/create/fromfactory, data: %s" % data[0]
+    # TODO: test if Class exists!
+    #aClass = getattr(__import__(__name__),data[-1])
+    #p = aClass(self.config)
+    #self.pipeline_array.append(p)
+    self.pipeline_array.append(self.factory(data[0], self.config))
+    self.pipeline_array[-1].create_pipeline(len(self.pipeline_array)-1)      
 
   def parse_pipeline(self,gst_pipeline_string):
     self.pipeline_array.append(gstreamerpipeline.Pipeline(self.config))
@@ -91,7 +96,7 @@ class BaseStreaming:
   def run(self):
     print "initializing Object"
     self.running = "false"
-    self.init_pipeline()
+    #self.init_pipeline()
     print self.config.get("Pipeline","VideoSrc2UdpSink")
     
     #self.parse_pipeline(self.config.get("Pipeline","VideoSrc2UdpSink"))
@@ -108,15 +113,15 @@ class BaseStreaming:
     #self.pipeline_array.append(udp_src_to_v4l2loopback.UDPSrcToV4l2Loopback(self.config))
     #self.pipeline_array[-1].create_pipeline(0)
     
-    self.pipeline_array.append(video_src_file_sink.VideoSrcToFileSink(self.config))
-    self.pipeline_array[-1].create_pipeline(0)
+    #self.pipeline_array.append(video_src_file_sink.VideoSrcToFileSink(self.config))
+    #self.pipeline_array[-1].create_pipeline(0)
     
     print "Pipeline('s) initialized"
     if self.config.getint("OSC","Init"):
 	  self.init_OSC()
 	
-    self.ready()
-    self.StartStop()
+    #self.ready()
+    #self.StartStop()
     
     if self.config.getint("GTK","Init"):
       print "GTK Window initialized"
@@ -161,6 +166,11 @@ class BaseStreaming:
       gtk.main_quit()
     else:
       self.mainloop.quit()
+
+  def delete_pipeline(self,addr, tags, data, source):
+    print "delete pipeline: %s" % data[-1]
+    p = self.pipeline_array.pop(data[-1])
+    p.quit()
 
   def on_window_key_press_event(self,window,event):
     print event.state

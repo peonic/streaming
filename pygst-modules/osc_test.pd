@@ -1,24 +1,53 @@
-#N canvas 856 111 1004 630 10;
+#N canvas 858 169 1004 630 10;
 #X declare -lib mrpeach;
-#X obj 50 32 import mrpeach;
-#X obj 28 250 udpsend;
-#X obj 124 190 packOSC;
-#X msg 125 105 0;
-#X msg 177 104 1;
+#X obj 27 44 import mrpeach;
+#X obj 29 544 udpsend;
+#X obj 111 526 packOSC;
+#X msg 625 215 0;
+#X msg 663 214 1;
 #X msg 28 73 connect localhost 8000;
-#X msg 337 148 send /stream/create/fromstring \$1;
-#X text 537 66 comment;
-#X msg 346 26 [v4l2src name=vsource ! videoscale ! video/x-raw-yuv
+#X msg 630 559 send /stream/create/fromstring \$1;
+#X msg 624 250 send /stream/start \$1;
+#X msg 626 315 send /print/caps 1;
+#X floatatom 630 379 5 0 0 0 - - -;
+#X msg 677 380 1;
+#X msg 630 410 send /stream/delete \$1;
+#X msg 618 108 send /stream/create/fromfactory \$1;
+#X msg 735 65 VideoSrcToUDPSink;
+#X text 624 280 print streaming caps \, important if bitrates or video
+input caps are changed;
+#X text 626 351 stop and delete a pipeline object;
+#X msg 860 64 UDPSrcToFileSink;
+#X msg 582 63 FileSrcToV4l2Loopback;
+#X msg 439 61 UDPSrcToV4l2Loopback;
+#X msg 304 60 VideoSrcToFileSink;
+#X text 302 -6 following pipelines are available \, see the config.ini
+for details. the important "pipeline number" is the number of the current
+stream. the pipeline number changes the pipeline attributes \, as it
+they are listed in the config;
+#X text 620 186 after a stream was created \, it has to be started
+;
+#X msg 631 478 v4l2src name=vsource ! videoscale ! video/x-raw-yuv
 \, width=640 \, height=480 ! videorate ! video/x-raw-yuv \, framerate=25/1
 ! ffmpegcolorspace ! ffenc_mpeg4 bitrate=200000 ! rtpmp4vpay ! udpsink
-host=127.0.0.1 port=5000 name=vsink];
-#X msg 129 145 send /stream/start \$1;
-#X msg 597 147 send /print/caps 1;
+host=127.0.0.1 port=5000 name=vsink;
+#X text 631 448 not working \, but might be an nice way to create pipelines!
+osc cant send this as a string!;
 #X connect 2 0 1 0;
-#X connect 3 0 9 0;
-#X connect 4 0 9 0;
+#X connect 3 0 7 0;
+#X connect 4 0 7 0;
 #X connect 5 0 1 0;
 #X connect 6 0 2 0;
-#X connect 8 0 6 0;
-#X connect 9 0 2 0;
-#X connect 10 0 2 0;
+#X connect 7 0 2 0;
+#X connect 8 0 2 0;
+#X connect 9 0 11 0;
+#X connect 10 0 11 0;
+#X connect 11 0 2 0;
+#X connect 12 0 2 0;
+#X connect 13 0 12 0;
+#X connect 16 0 12 0;
+#X connect 17 0 12 0;
+#X connect 18 0 12 0;
+#X connect 19 0 12 0;
+#X connect 22 0 6 0;
+#X coords 0 31500 50 31450 0 0 0;
