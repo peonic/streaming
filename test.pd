@@ -1,4 +1,4 @@
-#N canvas 758 116 1004 630 10;
+#N canvas 762 232 1004 630 10;
 #X declare -lib mrpeach;
 #X obj 27 44 import mrpeach;
 #X obj 29 544 udpsend;
@@ -28,12 +28,7 @@ they are listed in the config;
 host=127.0.0.1 port=5000 name=vsink;
 #X text 632 525 not working \, but might be an nice way to create pipelines!
 osc cant send this as a string!;
-#X msg 69 308 send /stream/change/number \$1;
 #X floatatom 69 283 5 0 0 0 - - -;
-#X text 68 231 !! pipeline number !! changes the parameter of the stream
-when a stream is created \, e.g the video device is the pipeline number
-\, also the udp port is 5000 + the pipeline number;
-#X msg 560 191 send /stream/create/fromfactory VideoSrcToUDPSink;
 #X msg 724 62 VideoSrcToUDPSink;
 #X msg 304 60 VideoSrcToFileSink;
 #X msg 559 216 send /stream/create/fromfactory UDPSrcToV4l2Loopback
@@ -49,6 +44,12 @@ when a stream is created \, e.g the video device is the pipeline number
 \, \$1 is not working \, so copy one of the above strings;
 #X msg 558 145 send /stream/create/fromfactory \$1;
 #X text 560 171 like this its working;
+#X text 620 254 start/stop stream;
+#X text 68 231 !! config number !! changes the parameter of the stream
+when a stream is created \, e.g the video device is the config number
+\, also the udp port is 5000 + the config number;
+#X msg 69 308 send /config/change/number \$1;
+#X msg 560 191 send /stream/create/fromfactory VideoSrcToUDPSink;
 #X connect 2 0 1 0;
 #X connect 3 0 7 0;
 #X connect 4 0 7 0;
@@ -58,17 +59,17 @@ when a stream is created \, e.g the video device is the pipeline number
 #X connect 8 0 2 0;
 #X connect 9 0 10 0;
 #X connect 10 0 2 0;
-#X connect 14 0 34 0;
+#X connect 14 0 31 0;
 #X connect 17 0 6 0;
-#X connect 19 0 2 0;
-#X connect 20 0 19 0;
+#X connect 19 0 35 0;
+#X connect 21 0 31 0;
 #X connect 22 0 2 0;
-#X connect 24 0 34 0;
-#X connect 25 0 2 0;
-#X connect 26 0 34 0;
-#X connect 28 0 7 0;
-#X connect 29 0 10 0;
-#X connect 30 0 10 0;
-#X connect 31 0 10 0;
-#X connect 34 0 2 0;
+#X connect 23 0 31 0;
+#X connect 25 0 7 0;
+#X connect 26 0 10 0;
+#X connect 27 0 10 0;
+#X connect 28 0 10 0;
+#X connect 31 0 2 0;
+#X connect 35 0 2 0;
+#X connect 36 0 2 0;
 #X coords 0 31500 50 31450 0 0 0;

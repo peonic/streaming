@@ -1,8 +1,14 @@
-Streaming Solution
+Streaming Solution with Gstreamer
 ==================
 by Peter Innerhofer
 
-Streaming Solution with Gstreamer. 
+It was created at Institut for Electronic Music and Acoustics within the
+CO-ME-DI-A project leaded by Winfried Ritsch for the art installation 
+"extended view" by Peter Venus.
+
+The CO-ME-DI-A project is supported by the Education, Audiovisual & 
+Culture Executive Agency (EACEA) of the European Comission for 
+the period 2007 - 2010 (http://www.comedia.eu.org/).
 
 Features:
  * create, controll, delete predefined streams from pure data
