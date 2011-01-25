@@ -61,7 +61,7 @@ class StreamingApplication:
 			return aClass(args)
 			# apply(aClass, args)
 		except AttributeError:
-			print "\n Error: Called Factory with ClassName that doesn't exist!\n  ClassName: %s\n" %s className
+			print "\n Error: Called Factory with ClassName that doesn't exist!\n  ClassName: %s\n" % className
 			return -1
 
 	def init_gtk(self):
