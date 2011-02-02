@@ -67,11 +67,14 @@ class Pipeline:
 		if self.running == "true":
 			self.running = "false"
 		print "Send EnOffStream(EOS) to source element"
-		if self.source.send_event(gst.event_new_eos()):
-			print "EOS event sucessfully send"
-		else:
-			print "EOS event NOT send, try to send it to pipeline"
-			self.pipeline.send_event(gst.event_new_eos())
+		try:
+			if self.source.send_event(gst.event_new_eos()):
+				print "EOS event sucessfully send"
+			else:
+				print "EOS event NOT send, try to send it to pipeline"
+				self.pipeline.send_event(gst.event_new_eos())
+		except NameError:
+			print "Error: Pipeline: source not specified"
 
 	def ready(self):
 		if self.running == "false":
@@ -85,16 +88,23 @@ class Pipeline:
 		if t == gst.MESSAGE_EOS:
 			print "received EnOffStream(EOS) signal from bus %s" % bus.get_name()
 			self.pipeline.set_state(gst.STATE_NULL)
+			self.running = "false"
 		elif t == gst.MESSAGE_ERROR:
 			err, debug = message.parse_error()
 			print "Error: %s" % err, debug
 			self.pipeline.set_state(gst.STATE_NULL)
+			self.running = "false"
 		elif t == gst.MESSAGE_WARNING:
 			err, debug = message.parse_warning()
 			print "Warning: %s" % err, debug
+			self.running = "false"
 
 	def print_caps(self):
 		print "\n caps: " + str(self.sink.get_pad('sink').get_property('caps'))
 
 	def quit(self):
-		self.bus.remove_signal_watch()
+		try: 
+			self.bus.remove_signal_watch()
+			print "pipeline destroyed"
+		except NoneType:
+			print "Error: Pipeline: bus not specified, pipeline destroyed"
