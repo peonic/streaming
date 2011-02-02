@@ -31,10 +31,8 @@ class UDPSrcToV4l2Loopback(gstreamerpipeline.Pipeline):
 
 	def __init__(self,config):
 		gstreamerpipeline.Pipeline.__init__(self,config)
-		
-		# bitrate:200000, halfsize
-		self.caps_rtp = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd0a041e1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)3020882583, clock-base=(uint)1230987550, seqnum-base=(uint)42398"
-		
+		self.config = config
+				
 	def create_pipeline(self,p_item):
 		print "\n -- creating UDPSrcToV4l2Loopback Pipeline -- \n"
 		self.number = p_item
@@ -44,7 +42,7 @@ class UDPSrcToV4l2Loopback(gstreamerpipeline.Pipeline):
 		self.source = gst.element_factory_make("udpsrc","vsource") 
 		self.source.set_property("port", self.config.getint("UDP%s" % p_item,"port"))
 
-		caps1 = gst.Caps(self.caps_rtp)
+		caps1 = gst.Caps(self.config.get("Caps","CurrentRTP"))
 		filter1 = gst.element_factory_make("capsfilter", "filter1")
 		filter1.set_property("caps", caps1)
 

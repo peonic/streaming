@@ -18,6 +18,7 @@ class UDPSrcToFileSink(gstreamerpipeline.Pipeline):
 
 	def create_pipeline(self,p_item):
 		print "\n -- creating UDPSrcToFileSink Pipeline -- \n"
+		print "config number: %s" % p_item
 		self.number = p_item
 
 		self.record_id = 0
@@ -26,11 +27,17 @@ class UDPSrcToFileSink(gstreamerpipeline.Pipeline):
 		self.source = gst.element_factory_make("udpsrc","vsource") 
 		self.source.set_property("port", self.config.getint("UDP%s" % p_item,"port") )
 
-		caps1 = gst.Caps(self.config.get("Caps","RTPConfigString"))
+		caps_string = self.config.get("Caps","RTPConfigString")
+		print "caps : %s" % caps_string
+		caps1 = gst.Caps(caps_string)
 		filter1 = gst.element_factory_make("capsfilter", "filter1")
 		filter1.set_property("caps", caps1)
 
 		rtpmp4vdepay = gst.element_factory_make("rtpmp4vdepay", "rtpmp4vpay%s" % p_item)
+		
+		caps2 = gst.Caps(caps_string)
+		filter2 = gst.element_factory_make("capsfilter", "filter1")
+		filter2.set_property("caps", caps2)
 
 		avimux = gst.element_factory_make("avimux", "avimuxer_%s" % p_item)
 		queueb = gst.element_factory_make("queue")

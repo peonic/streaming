@@ -21,18 +21,21 @@ class FileSrcToV4l2Loopback(gstreamerpipeline.Pipeline):
 	read INSTALL.txt for more information
 		
 	test at commandline:
-	$ gst-launch playbin2 uri=file:///home/user/videos/test.avi video-sink="v4l2loopback device=/dev/video1"
+	$ gst-launch playbin2 uri=file:///home/user/videos/test.avi video-sink="v4l2sink device=/dev/video1"
 	$ gst-launch v4l2src device=/dev/video1 ! xvimagesink
 	"""
 	
 	def __init__(self,config):
 		gstreamerpipeline.Pipeline.__init__(self,config)
 		
-	def create_pipeline(self,p_item,filepath):
+	def create_pipeline(self,p_item):
 		print "\n -- creating FileSrcToV4l2Loopback Pipeline -- \n"
 		self.number = p_item
 
 		self.pipeline = gst.element_factory_make("playbin2", "vsource")
+		self.source = self.pipeline
+		
+		filepath = "/videos/test.avi"
 		
 		print "\n\n" + "file://" + str(os.getcwd()) + filepath
 		self.pipeline.set_property("uri", "file://" + str(os.getcwd()) + filepath)      
