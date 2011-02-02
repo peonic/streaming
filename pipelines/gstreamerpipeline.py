@@ -100,7 +100,7 @@ class Pipeline:
 			self.running = "false"
 
 	def print_caps(self):
-		print "\n caps: " + str(self.sink.get_pad('sink').get_property('caps'))
+		print "\n caps of stream%s: %s" % self.number, str(self.sink.get_pad('sink').get_property('caps'))
 
 	def quit(self):
 		try: 

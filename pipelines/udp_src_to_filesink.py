@@ -2,15 +2,17 @@
 #
 # streaming solution for "extended view stream" for the CoMeDia project
 
-#import sys, os
-#import socket, time
+import sys, os
 import pygst
 #pygst.require("0.10")
 import gst
-#import gtk, pygtk, gobject
 import gstreamerpipeline
 
 class UDPSrcToFileSink(gstreamerpipeline.Pipeline):
+	"""
+	TODO: pipeline not working
+	
+	"""
 	
 	def __init__(self,config):
 		gstreamerpipeline.Pipeline.__init__(self,config)
@@ -27,7 +29,7 @@ class UDPSrcToFileSink(gstreamerpipeline.Pipeline):
 		self.source = gst.element_factory_make("udpsrc","vsource") 
 		self.source.set_property("port", self.config.getint("UDP%s" % p_item,"port") )
 
-		caps_string = self.config.get("Caps","RTPConfigString")
+		caps_string = self.config.get("Caps","CurrentRTP")
 		print "caps : %s" % caps_string
 		caps1 = gst.Caps(caps_string)
 		filter1 = gst.element_factory_make("capsfilter", "filter1")
@@ -44,7 +46,7 @@ class UDPSrcToFileSink(gstreamerpipeline.Pipeline):
 
 		self.sink = gst.element_factory_make("filesink", "vsink")
 		print self.config.get("Recorder","filepath") + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi"
-		self.sink.set_property("location", self.config.get("Recorder","filepath") + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi")
+		self.sink.set_property("location", os.getcwd() + self.config.get("Recorder","filepath") + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi")
 
 		# adding the pipleine elements and linking them together
 		self.pipeline.add(self.source, filter1, rtpmp4vdepay, avimux, queueb, self.sink)
@@ -55,7 +57,11 @@ class UDPSrcToFileSink(gstreamerpipeline.Pipeline):
 		self.bus.connect("message",self.on_message)
 
 	def start(self):
-		print "should increase record_id and should change file Path!"
-		#
-		# change record id!
-		gstreamerpipeline.Pipeline.start(self)
+		if self.running == "false":
+			print "increasing record_id and change output file"
+			self.record_id += 1
+			print self.config.get("Recorder","filepath") + "recorded_camid_" + str(self.number) + "_nr" + str(self.record_id) + ".avi"
+			self.sink.set_property("location", os.getcwd() + self.config.get("Recorder","filepath") + "recorded_camid_" + str(self.number) + "_nr" + str(self.record_id) + ".avi")
+			gstreamerpipeline.Pipeline.start(self)
+		else:
+			print "pipeline running, cant change filepath"

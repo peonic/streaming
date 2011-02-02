@@ -63,8 +63,11 @@ class VideoSrcToFileSink(gstreamerpipeline.Pipeline):
 		
 		
 	def start(self):
-		print "should increase record_id and should change file Path!"
-		#
-		# change record id!
-		gstreamerpipeline.Pipeline.start(self)
-
+		if self.running == "false":
+			print "increasing record_id and change output file"
+			self.record_id += 1
+			print self.config.get("Recorder","filepath") + "recorded_camid_" + str(self.number) + "_nr" + str(self.record_id) + ".avi"
+			self.sink.set_property("location", os.getcwd() + self.config.get("Recorder","filepath") + "recorded_camid_" + str(self.number) + "_nr" + str(self.record_id) + ".avi")
+			gstreamerpipeline.Pipeline.start(self)
+		else:
+			print "pipeline running, cant change filepath"

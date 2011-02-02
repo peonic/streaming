@@ -46,14 +46,17 @@ class StreamingApplication:
 		self.pipeline_number = 0
 
 	def init_OSC(self):    
-		self.osc_server = osc.oschandler.OSCHandler((self.config.get("OSC","ServerAddress"),self.config.getint("OSC","Port")))
+		self.osc_server = osc.oschandler.OSCServer((self.config.get("OSC","ServerAddress"),self.config.getint("OSC","ServerPort")))
 		self.osc_server.addMsgHandler(self.config.get("OSC","StreamStart"),self.start_stop_stream)
 		self.osc_server.addMsgHandler(self.config.get("OSC","CreatePipelineFromString"),self.create_pipeline_from_osc_string)
-		self.osc_server.addMsgHandler(self.config.get("OSC","PrintCaps"),self.osc_print_caps)
+		self.osc_server.addMsgHandler(self.config.get("OSC","CapsPrint"),self.osc_print_caps)
+		#self.osc_server.addMsgHandler(self.config.get("OSC","CapsReceive"),self.osc_print_caps)
 		self.osc_server.addMsgHandler(self.config.get("OSC","StreamFactoryCreate"),self.pipeline_factory)
 		self.osc_server.addMsgHandler(self.config.get("OSC","StreamDelete"),self.delete_pipeline)
 		self.osc_server.addMsgHandler(self.config.get("OSC","ConfigChangeNumber"),self.change_pipeline_number)
 		self.osc_server.start()
+		
+		self.osc_client = osc.oschandler.OSCClient((self.config.get("OSC","ClientAddress"),self.config.getint("OSC","ClientPort")))
 
 	def factory(self, className, args):
 		try:
