@@ -73,7 +73,7 @@ class StreamingApplication:
 
 	def pipeline_factory(self,addr, tags, data, source):
 		print "recieved osc message: /stream/create/fromfactory, data: %s" % data[-1]
-		p = self.factory(data[0], self.config)
+		p = self.factory(data[-1], self.config)
 		if p is not -1:
 			self.pipeline_array.append(p)
 			self.pipeline_array[-1].create_pipeline(self.pipeline_number)      
@@ -150,10 +150,13 @@ class StreamingApplication:
 		self.quit()
 
 	def quit(self):
-		for p in self.pipeline_array:
-			p.stop()
-			time.sleep(1)
-			p.quit()
+		try:
+			for p in self.pipeline_array:
+				p.stop()
+				time.sleep(1)
+				p.quit()
+		except NameError:
+			print "Error: Application: NoneType: somehow p.quit not working"
 		self.osc_server.close()
 		if self.config.getint("GTK","Init"):
 			gtk.main_quit()
@@ -162,9 +165,12 @@ class StreamingApplication:
 
 	def delete_pipeline(self,addr, tags, data, source):
 		print "delete pipeline: %s" % data[-1]
-		if data[-1] > 0 and data[-1] < len(self.pipeline_array):
+		if data[-1] >= 0 and data[-1] < len(self.pipeline_array):
 			p = self.pipeline_array.pop(data[-1])
 			p.quit()
+			print "nr of streams: " + str(len(self.pipeline_array))
+		else:
+			print "no pipelines objects"
 
 	def on_window_key_press_event(self,window,event):
 		print event.state
