@@ -35,8 +35,10 @@ class UDPSrcToV4l2Loopback(gstreamerpipeline.Pipeline):
 				
 	def create_pipeline(self,p_item):
 		print "\n -- creating UDPSrcToV4l2Loopback Pipeline -- \n"
-		self.number = p_item
-		
+		print "UDPAddr: host: " + self.config.get("UDP%s" % p_item, "host") + " port: "+ self.config.get("UDP%s" % p_item, "port")
+		print "Video Sink: " + self.config.get("VideoSink","VideoSink%s" % p_item)
+
+		self.number = p_item	
 		self.pipeline = gst.Pipeline("pipeline%s" % p_item)
 
 		self.source = gst.element_factory_make("udpsrc","vsource") 

@@ -26,11 +26,13 @@ class VideoSrcToUDPSink(gstreamerpipeline.Pipeline):
 
 	def create_pipeline(self,p_item):
 		print "\n -- creating VideoSrcToUDPSink Pipeline -- \n"
+		print "Video Src Dev: " + self.config.get("VideoSrc", "VideoSrc%s" % p_item)
+		print "UDPAddr: host: " + self.config.get("UDP%s" % p_item, "host") + " port: "+ self.config.get("UDP%s" % p_item, "port")
+		
 		self.number = p_item
 		
 		self.pipeline = gst.Pipeline("pipeline%s" % p_item)
 
-		print "video src dev: " + self.config.get("VideoSrc", "VideoSrc%s" % p_item)
 		self.source = gst.element_factory_make("v4l2src","vsource") 
 		self.source.set_property("device", self.config.get("VideoSrc", "VideoSrc%s" % p_item))
 

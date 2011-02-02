@@ -1,4 +1,4 @@
-#N canvas 668 191 1123 766 10;
+#N canvas 731 134 1123 766 10;
 #X declare -lib mrpeach;
 #X obj 27 180 import mrpeach;
 #X obj 29 680 udpsend;
@@ -54,6 +54,7 @@ when a stream is created \, e.g the video device is the config number
 #X msg 611 346 send /stream/create/fromfactory FileSrcToV4l2Loopback
 ;
 #X msg 627 528 send /caps/print 1;
+#X msg 183 210 connect 192.168.0.22 8000;
 #X connect 2 0 1 0;
 #X connect 3 0 7 0;
 #X connect 4 0 7 0;
@@ -79,4 +80,5 @@ when a stream is created \, e.g the video device is the config number
 #X connect 37 0 2 0;
 #X connect 38 0 2 0;
 #X connect 39 0 2 0;
+#X connect 40 0 1 0;
 #X coords 0 38300 50 38250 0 0 0;

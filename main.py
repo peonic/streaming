@@ -175,22 +175,13 @@ class StreamingApplication:
 		else:
 			print "no pipelines objects"
 
-	def on_window_key_press_event(self,window,event):
-		print event.state
-		print event.keyval
-		if event.keyval == 115:
-			self.StartStopAll()
-		if event.keyval == 102:
-			self.Fullscreen()
-		if event.keyval == 113:
-			self.OnQuit(self.window)
       
 	def osc_print_caps(self,addr, tags, data, source):
 		for p in self.pipeline_array:
 			c = p.get_caps()
 			print "\n caps of stream" + str(p.number) + ": " + c
 			if p.number == 0:
-				self.config.set("OSC","CurrentRTP",c)
+				self.config.set("Caps","CurrentRTP",c)
 				cfgfile = open("config.ini",'w')
 				self.config.write(cfgfile)
 				self.config.read("config.ini")
