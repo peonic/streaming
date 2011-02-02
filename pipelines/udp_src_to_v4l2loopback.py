@@ -42,6 +42,7 @@ class UDPSrcToV4l2Loopback(gstreamerpipeline.Pipeline):
 		self.source = gst.element_factory_make("udpsrc","vsource") 
 		self.source.set_property("port", self.config.getint("UDP%s" % p_item,"port"))
 
+		print "caps which are used: " + str(self.config.get("Caps","CurrentRTP"))
 		caps1 = gst.Caps(self.config.get("Caps","CurrentRTP"))
 		filter1 = gst.element_factory_make("capsfilter", "filter1")
 		filter1.set_property("caps", caps1)

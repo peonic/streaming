@@ -187,7 +187,15 @@ class StreamingApplication:
       
 	def osc_print_caps(self,addr, tags, data, source):
 		for p in self.pipeline_array:
-			p.print_caps()
+			c = p.get_caps()
+			print "\n caps of stream" + str(p.number) + ": " + c
+			if p.number == 0:
+				self.config.set("OSC","CurrentRTP",c)
+				cfgfile = open("config.ini",'w')
+				self.config.write(cfgfile)
+				self.config.read("config.ini")
+				print self.config.get("OSC","CurrentRTP")
+				
 
 try :
 	print "\ncreating Streaming Server \n\npress Ctrl-C to exit\n"

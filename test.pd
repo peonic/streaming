@@ -1,4 +1,4 @@
-#N canvas 667 162 1123 766 10;
+#N canvas 668 191 1123 766 10;
 #X declare -lib mrpeach;
 #X obj 27 180 import mrpeach;
 #X obj 29 680 udpsend;
@@ -8,7 +8,6 @@
 #X msg 28 209 connect localhost 8000;
 #X msg 631 772 send /stream/create/fromstring \$1;
 #X msg 625 463 send /stream/start \$1;
-#X msg 627 528 send /print/caps 1;
 #X msg 678 593 1;
 #X msg 631 623 send /stream/delete \$1;
 #X text 625 499 print streaming caps \, important if bitrates or video
@@ -54,26 +53,27 @@ when a stream is created \, e.g the video device is the config number
 #X msg 614 247 send /stream/create/fromfactory VideoSrcToFileSink;
 #X msg 611 346 send /stream/create/fromfactory FileSrcToV4l2Loopback
 ;
+#X msg 627 528 send /caps/print 1;
 #X connect 2 0 1 0;
 #X connect 3 0 7 0;
 #X connect 4 0 7 0;
 #X connect 5 0 1 0;
 #X connect 6 0 2 0;
 #X connect 7 0 2 0;
-#X connect 8 0 2 0;
-#X connect 9 0 10 0;
-#X connect 10 0 2 0;
-#X connect 14 0 31 0;
-#X connect 17 0 6 0;
-#X connect 19 0 35 0;
-#X connect 21 0 31 0;
-#X connect 22 0 2 0;
-#X connect 23 0 31 0;
-#X connect 25 0 7 0;
-#X connect 26 0 10 0;
-#X connect 27 0 10 0;
-#X connect 28 0 10 0;
-#X connect 31 0 2 0;
+#X connect 8 0 9 0;
+#X connect 9 0 2 0;
+#X connect 13 0 30 0;
+#X connect 16 0 6 0;
+#X connect 18 0 34 0;
+#X connect 20 0 30 0;
+#X connect 21 0 2 0;
+#X connect 22 0 30 0;
+#X connect 24 0 7 0;
+#X connect 25 0 9 0;
+#X connect 26 0 9 0;
+#X connect 27 0 9 0;
+#X connect 30 0 2 0;
+#X connect 34 0 2 0;
 #X connect 35 0 2 0;
 #X connect 36 0 2 0;
 #X connect 37 0 2 0;

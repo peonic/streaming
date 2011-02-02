@@ -101,6 +101,9 @@ class Pipeline:
 
 	def print_caps(self):
 		print "\n caps of stream%s: %s" % self.number, str(self.sink.get_pad('sink').get_property('caps'))
+	
+	def get_caps(self):
+		return str(self.sink.get_pad('sink').get_property('caps'))
 
 	def quit(self):
 		try: 
