@@ -9,29 +9,25 @@
 host=127.0.0.1 port=5000 name=vsink;
 #X text 544 771 not working \, but might be an nice way to create pipelines!
 osc cant send this as a string!;
-#X obj 101 118 cnv 15 398 181 empty empty empty 25 9 1 14 -99865 -262144
+#X obj 101 118 cnv 15 398 181 empty empty empty 25 9 1 14 -228856 -262144
 0;
 #X obj 109 173 bng 15 250 50 0 type0 empty VideoSrcToUDPSink 17 9 1
-14 -261234 -1 -262144;
+14 -261234 -258113 -1;
 #X obj 109 193 bng 15 250 50 0 type1 empty UDPSrcToV4L2Loopback 17
-9 1 14 -261682 -1 -262144;
+9 1 14 -260097 -1 -1;
 #X obj 109 213 bng 15 250 50 0 type2 empty FileSrcToV4L2Loopback 17
-9 1 14 -262130 -1 -262144;
+9 1 14 -257985 -1 -1;
 #X obj 109 233 bng 15 250 50 0 type3 empty VideoSrcToFileSink 17 9
-1 14 -204786 -1 -262144;
+1 14 -4034 -1 -1;
 #X obj 109 253 bng 15 250 50 0 type4 empty UDPSrcToFileSink 17 9 1
-14 -204800 -1 -262144;
+14 -4032 -1 -1;
 #X obj 109 153 bng 15 250 50 0 connect empty connect_to_localhost 17
-9 1 14 -262144 -1 -262144;
-#X obj 302 152 nbx 5 15 -1e+37 1e+37 0 1 OSC_port load OSC_port 65
-9 1 14 -99865 -262144 -262144 8000 256;
-#X obj 101 274 cnv 15 398 25 empty empty empty 20 12 0 14 -228856 -66577
-0;
-#X obj 109 279 hradio 15 1 0 8 config_number empty config_number 145
-9 1 14 -99865 -262130 -33289 1;
-#X obj 230 279 nbx 1 15 -1e+37 1e+37 0 0 empty config_number empty
-0 -8 1 12 -99865 -262144 -262144 1 256;
-#X obj 544 99 cnv 15 420 300 empty empty PIPELINES 5 12 0 14 -4034
+9 1 14 -262144 -1 -1;
+#X obj 303 152 nbx 5 15 -1e+37 1e+37 0 1 OSC_port load OSC_port 65
+9 1 14 -262144 -1 -1 8000 256;
+#X obj 107 279 hradio 15 1 0 8 config_number empty config_number 125
+9 1 14 -262144 -260097 -1 2;
+#X obj 544 99 cnv 15 420 300 empty empty PIPELINES 5 12 0 14 -204786
 -66577 0;
 #X text 548 117 following pipelines are available \, see the config.ini
 for details. the important "pipeline number" is the number of the current
@@ -45,32 +41,29 @@ they are listed in the config;
 ;
 #X msg 577 233 send /stream/create/fromfactory VideoSrcToFileSink;
 #X msg 557 193 send /stream/create/fromfactory UDPSrcToFileSink;
-#X obj 544 404 cnv 15 420 95 empty empty CONFIG_NUMBER 5 12 0 14 -260097
+#X obj 544 404 cnv 15 420 95 empty empty CONFIG_NUMBER 5 12 0 14 -261682
 -1 0;
-#X floatatom 547 451 5 0 0 0 - config_number -;
-#X text 596 424 !! config number !! changes the parameter of the stream
+#X text 618 422 !! config number !! changes the parameter of the stream
 when a stream is created \, e.g the video device is the config number
 \, also the udp port is 5000 + the config number;
 #X msg 547 476 send /config/change/number \$1;
-#X text 301 166 standard: 8000;
+#X text 301 167 standard: 8000;
 #X text 300 174 press connect again;
-#X text 300 183 after changing port;
-#X obj 302 204 cnv 15 100 8 empty empty start/stop_stream 0 3 0 10
--99865 -262144 0;
+#X text 299 183 after changing port;
 #X obj 302 238 cnv 15 100 8 empty empty stop&delete_pipeline_object
-0 3 0 10 -99865 -262144 0;
-#X text 112 278 0;
-#X text 216 278 7;
-#X text 201 278 6;
-#X text 186 278 5;
-#X text 171 278 4;
+0 3 0 10 -228856 -1 0;
+#X text 112 280 0;
+#X text 215 278 7;
+#X text 201 277 6;
+#X text 185 278 5;
+#X text 169 278 4;
 #X text 156 278 3;
-#X text 141 278 2;
+#X text 141 279 2;
 #X text 127 278 1;
-#X obj 367 279 bng 15 250 50 0 caps empty print_caps 17 9 1 14 -99865
--228856 -33289;
-#X obj 544 504 cnv 15 420 90 empty empty STREAMS_Start/Stop 5 12 0
-14 -4032 -1 0;
+#X obj 382 280 bng 15 250 50 0 caps empty print_caps 17 9 1 14 -262144
+-1 -1;
+#X obj 545 504 cnv 15 420 90 empty empty STREAMS_Start/Stop 5 12 0
+14 -204800 -1 0;
 #X msg 550 546 0;
 #X msg 588 547 1;
 #X msg 550 568 send /stream/start \$1;
@@ -85,7 +78,7 @@ when a stream is created \, e.g the video device is the config number
 #X text 816 546 Bang once \, starts the stream \,;
 #X text 816 556 Bang second time stops it;
 #X obj 544 599 cnv 15 420 90 empty empty PIPELINES_Stop/Delete 5 12
-0 14 -162280 -1 0;
+0 14 -228856 -1 0;
 #X msg 588 641 1;
 #X msg 550 666 send /stream/delete \$1;
 #X text 701 622 stop and delete a pipeline object;
@@ -97,31 +90,27 @@ when a stream is created \, e.g the video device is the config number
 #X obj 626 621 r p2;
 #X obj 588 621 r p1;
 #X obj 550 621 r p0;
-#X obj 544 694 cnv 15 420 65 empty empty PRINT_CAPS 5 12 0 14 -258113
--262144 0;
+#X obj 544 694 cnv 15 420 65 empty empty PRINT_CAPS 5 12 0 14 -261234
+-1 0;
 #X obj 552 722 r caps;
-#X obj 661 695 cnv 15 250 12 empty empty print_streaming_caps_is_very_important
-0 12 0 12 -258113 -262144 0;
-#X obj 661 720 cnv 15 250 10 empty empty if_bitrates_or_video_input_caps_are_changed
-0 5 0 12 -258113 -262144 0;
 #X obj 597 253 r type2;
 #X obj 302 248 bng 20 250 50 0 p0 empty 0 5 12 1 18 -262144 -1 -1;
 #X obj 332 248 bng 20 250 50 0 p1 empty 1 5 12 1 18 -262144 -1 -1;
 #X obj 362 248 bng 20 250 50 0 p2 empty 2 5 12 1 18 -262144 -1 -1;
 #X obj 392 248 bng 20 250 50 0 p3 empty 3 5 12 1 18 -262144 -1 -1;
-#X obj 302 213 bng 20 250 50 0 s0 empty 0 5 12 1 18 -262144 -1 -1;
+#X obj 302 210 bng 20 250 50 0 s0 empty 0 5 12 1 18 -262144 -1 -1;
 #X obj 332 213 bng 20 250 50 0 s1 empty 1 5 12 1 18 -262144 -1 -1;
 #X obj 362 213 bng 20 250 50 0 s2 empty 2 5 12 1 18 -262144 -1 -1;
 #X obj 109 133 bng 15 250 50 0 connect_web empty connect_to_IP 17 9
-1 14 -262144 -1 -262144;
-#X obj 223 134 nbx 3 15 -1e+37 1e+37 0 1 ip0 load . 47 9 0 14 -99865
--262144 -262144 192 256;
-#X obj 277 134 nbx 3 15 -1e+37 1e+37 0 1 ip1 load . 47 9 0 14 -99865
--262144 -262144 168 256;
-#X obj 331 134 nbx 3 15 -1e+37 1e+37 0 1 ip2 load . 47 9 0 14 -99865
--262144 -262144 0 256;
-#X obj 385 134 nbx 3 15 -1e+37 1e+37 0 1 ip3 load empty 47 9 0 14 -99865
--262144 -262144 22 256;
+1 14 -262144 -1 -1;
+#X obj 223 134 nbx 3 15 -1e+37 1e+37 0 1 ip0 load . 47 9 0 14 -262144
+-1 -1 192 256;
+#X obj 277 134 nbx 3 15 -1e+37 1e+37 0 1 ip1 load . 47 9 0 14 -262144
+-1 -1 168 256;
+#X obj 331 134 nbx 3 15 -1e+37 1e+37 0 1 ip2 load . 47 9 0 14 -262144
+-1 -1 0 256;
+#X obj 385 134 nbx 3 15 -1e+37 1e+37 0 1 ip3 load empty 47 9 0 14 -262144
+-1 -1 22 256;
 #X text 434 134 on OSCport;
 #X obj 118 633 loadbang;
 #X obj 118 654 s load;
@@ -154,8 +143,8 @@ when a stream is created \, e.g the video device is the config number
 #X obj 114 352 r connect_web;
 #X obj 219 590 print;
 #X obj 260 589 t a;
-#X obj 436 156 bng 10 250 50 0 disconnect empty disconnect 13 5 0 8
--128992 -258113 -191407;
+#X obj 436 156 bng 15 250 50 0 disconnect empty disconnect 18 5 0 10
+-262144 -1 -1;
 #X obj 392 445 r disconnect;
 #X obj 617 293 r type0;
 #X obj 637 332 r type1;
@@ -165,76 +154,79 @@ when a stream is created \, e.g the video device is the config number
 #X obj 661 527 r s3;
 #X msg 661 547 3;
 #X obj 393 213 bng 20 250 50 0 s3 empty 3 5 12 1 18 -262144 -1 -1;
+#X text 303 197 start/stop;
+#X text 659 719;
+#X obj 547 454 r config_number;
 #X connect 1 0 0 0;
 #X connect 2 0 1 0;
 #X connect 3 0 2 0;
-#X connect 18 0 20 0;
-#X connect 19 0 20 0;
-#X connect 20 0 1 0;
-#X connect 21 0 20 0;
-#X connect 22 0 20 0;
-#X connect 23 0 20 0;
-#X connect 25 0 27 0;
-#X connect 27 0 1 0;
-#X connect 43 0 45 0;
-#X connect 44 0 45 0;
-#X connect 45 0 1 0;
-#X connect 47 0 45 0;
-#X connect 49 0 43 0;
-#X connect 50 0 44 0;
-#X connect 51 0 47 0;
-#X connect 57 0 58 0;
-#X connect 58 0 1 0;
+#X connect 16 0 18 0;
+#X connect 17 0 18 0;
+#X connect 18 0 1 0;
+#X connect 19 0 18 0;
+#X connect 20 0 18 0;
+#X connect 21 0 18 0;
+#X connect 24 0 1 0;
+#X connect 39 0 41 0;
+#X connect 40 0 41 0;
+#X connect 41 0 1 0;
+#X connect 43 0 41 0;
+#X connect 45 0 39 0;
+#X connect 46 0 40 0;
+#X connect 47 0 43 0;
+#X connect 53 0 54 0;
+#X connect 54 0 1 0;
+#X connect 56 0 54 0;
+#X connect 57 0 54 0;
+#X connect 58 0 54 0;
 #X connect 60 0 58 0;
-#X connect 61 0 58 0;
-#X connect 62 0 58 0;
-#X connect 64 0 62 0;
-#X connect 65 0 61 0;
-#X connect 66 0 57 0;
-#X connect 67 0 60 0;
-#X connect 69 0 121 0;
-#X connect 72 0 21 0;
-#X connect 86 0 87 0;
-#X connect 88 0 87 0;
-#X connect 91 0 95 0;
-#X connect 92 0 96 0;
-#X connect 93 0 113 0;
-#X connect 93 0 114 0;
-#X connect 94 0 114 0;
-#X connect 94 0 113 0;
-#X connect 95 0 97 0;
-#X connect 95 1 94 0;
-#X connect 96 0 93 0;
-#X connect 97 0 96 0;
+#X connect 61 0 57 0;
+#X connect 62 0 53 0;
+#X connect 63 0 56 0;
+#X connect 65 0 115 0;
+#X connect 66 0 19 0;
+#X connect 80 0 81 0;
+#X connect 82 0 81 0;
+#X connect 85 0 89 0;
+#X connect 86 0 90 0;
+#X connect 87 0 107 0;
+#X connect 87 0 108 0;
+#X connect 88 0 108 0;
+#X connect 88 0 107 0;
+#X connect 89 0 91 0;
+#X connect 89 1 88 0;
+#X connect 90 0 87 0;
+#X connect 91 0 90 0;
+#X connect 92 0 97 0;
+#X connect 93 0 97 1;
+#X connect 93 0 102 0;
+#X connect 94 0 101 0;
+#X connect 95 0 100 0;
+#X connect 96 0 99 0;
+#X connect 97 0 105 0;
 #X connect 98 0 103 0;
-#X connect 99 0 103 1;
-#X connect 99 0 108 0;
-#X connect 100 0 107 0;
-#X connect 101 0 106 0;
-#X connect 102 0 105 0;
-#X connect 103 0 111 0;
-#X connect 104 0 109 0;
-#X connect 105 0 103 0;
-#X connect 105 1 103 4;
-#X connect 106 0 103 0;
-#X connect 106 1 103 3;
-#X connect 107 0 103 0;
-#X connect 107 1 103 2;
-#X connect 108 0 103 0;
-#X connect 108 1 103 1;
-#X connect 109 0 113 0;
-#X connect 109 0 114 0;
-#X connect 110 0 104 0;
-#X connect 111 0 110 0;
-#X connect 111 1 94 0;
-#X connect 112 0 104 0;
-#X connect 114 0 0 0;
-#X connect 116 0 94 0;
-#X connect 117 0 19 0;
-#X connect 118 0 18 0;
-#X connect 119 0 23 0;
-#X connect 120 0 22 0;
-#X connect 121 0 1 0;
-#X connect 122 0 123 0;
-#X connect 123 0 45 0;
+#X connect 99 0 97 0;
+#X connect 99 1 97 4;
+#X connect 100 0 97 0;
+#X connect 100 1 97 3;
+#X connect 101 0 97 0;
+#X connect 101 1 97 2;
+#X connect 102 0 97 0;
+#X connect 102 1 97 1;
+#X connect 103 0 107 0;
+#X connect 103 0 108 0;
+#X connect 104 0 98 0;
+#X connect 105 0 104 0;
+#X connect 105 1 88 0;
+#X connect 106 0 98 0;
+#X connect 108 0 0 0;
+#X connect 110 0 88 0;
+#X connect 111 0 17 0;
+#X connect 112 0 16 0;
+#X connect 113 0 21 0;
+#X connect 114 0 20 0;
+#X connect 115 0 1 0;
+#X connect 116 0 117 0;
+#X connect 117 0 41 0;
+#X connect 121 0 24 0;
 #X coords 0 -1 1 1 400 200 1 100 100;

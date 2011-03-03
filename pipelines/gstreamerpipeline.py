@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # by peter innerhofer
 #
 # streaming solution for "extended view stream" for the CoMeDia project
@@ -107,6 +106,7 @@ class Pipeline:
 
 	def quit(self):
 		try: 
+			self.pipeline.set_state(gst.STATE_NULL)
 			self.bus.remove_signal_watch()
 			print "pipeline destroyed"
 		except NoneType:

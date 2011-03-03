@@ -47,7 +47,8 @@ class StreamingApplication:
 
 	def init_OSC(self):    
 		self.osc_server = osc.oschandler.OSCServer((self.config.get("OSC","ServerAddress"),self.config.getint("OSC","ServerPort")))
-		self.osc_server.addMsgHandler(self.config.get("OSC","StreamStart"),self.start_stop_stream)
+		self.osc_server.addMsgHandler(self.config.get("OSC","StreamStart"),self.stream_start_stop)
+		self.osc_server.addMsgHandler(self.config.get("OSC","StreamReady"),self.stream_ready)
 		self.osc_server.addMsgHandler(self.config.get("OSC","CreatePipelineFromString"),self.create_pipeline_from_osc_string)
 		self.osc_server.addMsgHandler(self.config.get("OSC","CapsPrint"),self.osc_print_caps)
 		#self.osc_server.addMsgHandler(self.config.get("OSC","CapsReceive"),self.osc_print_caps)
@@ -132,7 +133,7 @@ class StreamingApplication:
 			self.mainloop.run()
 		print "exit"
 
-	def start_stop_stream(self,addr, tags, data, source):
+	def stream_start_stop(self,addr, tags, data, source):
 		print "received osc msg /stream/start from %s" % OSC.getUrlStr(source)
 		#self.ready()
 		self.StartStop(data[-1])
@@ -144,8 +145,16 @@ class StreamingApplication:
 	def StartStop(self, p_nr):
 		if p_nr >= 0 and p_nr < len(self.pipeline_array):
 			self.pipeline_array[p_nr].StartStop()
+
+	def stream_ready(self,addr, tags, data, source):
+		print "received osc msg /stream/ready from %s" % OSC.getUrlStr(source)
+		self.ready()
     
-	def ready(self):
+	def ready(self,p_nr):
+		if p_nr >= 0 and p_nr < len(self.pipeline_array):
+			self.pipeline_array[p_nr].ready()
+   
+	def readyAll(self):
 		for p in self.pipeline_array:
 			p.ready()
 		  
@@ -180,12 +189,14 @@ class StreamingApplication:
 		for p in self.pipeline_array:
 			c = p.get_caps()
 			print "\n caps of stream" + str(p.number) + ": " + c
+			"""
 			if p.number == 0:
 				self.config.set("Caps","CurrentRTP",c)
 				cfgfile = open("config.ini",'w')
 				self.config.write(cfgfile)
 				self.config.read("config.ini")
 				print self.config.get("OSC","CurrentRTP")
+			"""
 				
 
 try :
