@@ -89,7 +89,6 @@ class StreamingApplication:
 	def change_config_number(self, addr, tags, data, source):
 		print "\nrecieved osc msg " + str(addr) + " data=%s  \n" % data[-1] 
 		self.config_number = data[0]
-		self.init_gtk()
 
 	def stream_start_stop(self,addr, tags, data, source):
 		print "\nrecieved osc msg " + str(addr) + " data=%s  \n" % data[-1] 
@@ -120,7 +119,6 @@ class StreamingApplication:
 			self.config.read("config.ini")
 			# print self.config.get("OSC","CurentPipeline%s" % p.number)
 			"""
-
     
 	def run(self):
 		print "initializing Object"
