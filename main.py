@@ -43,7 +43,8 @@ class StreamingApplication:
 		# print self.config.sections()
 
 		self.pipeline_array = []
-		self.pipeline_number = 0
+		self.config_number = 0
+		self.gtk_init = 0
 
 	def init_OSC(self):    
 		self.osc_server = osc.oschandler.OSCServer((self.config.get("OSC","ServerAddress"),self.config.getint("OSC","ServerPort")))
@@ -54,7 +55,7 @@ class StreamingApplication:
 		#self.osc_server.addMsgHandler(self.config.get("OSC","CapsReceive"),self.osc_print_caps)
 		self.osc_server.addMsgHandler(self.config.get("OSC","StreamFactoryCreate"),self.pipeline_factory)
 		self.osc_server.addMsgHandler(self.config.get("OSC","StreamDelete"),self.delete_pipeline)
-		self.osc_server.addMsgHandler(self.config.get("OSC","ConfigChangeNumber"),self.change_pipeline_number)
+		self.osc_server.addMsgHandler(self.config.get("OSC","ConfigChangeNumber"),self.change_config_number)
 		self.osc_server.start()
 		
 		self.osc_client = osc.oschandler.OSCClient((self.config.get("OSC","ClientAddress"),self.config.getint("OSC","ClientPort")))
@@ -68,33 +69,58 @@ class StreamingApplication:
 			print "\n Error: Called Factory with ClassName that doesn't exist!\n  ClassName: %s\n" % className
 			return -1
 
-	def init_gtk(self):
-		self.gtk_init = 1
-		self.window = gtk.Window()
-		self.window.connect("destroy", gtk.main_quit, "WM destroy")
-		self.window.connect("key-press-event",self.on_window_key_press_event)
-		self.window.show_all()
-
 	def pipeline_factory(self,addr, tags, data, source):
-		print "recieved osc message: /stream/create/fromfactory, data: %s" % data[-1]
+		print "\nrecieved osc msg " + str(addr) + " data=%s  \n" % data[-1] 
 		p = self.factory(data[-1], self.config)
 		if p is not -1:
 			self.pipeline_array.append(p)
-			self.pipeline_array[-1].create_pipeline(self.pipeline_number)      
+			self.pipeline_array[-1].create_pipeline(self.config_number)      
 
 	def parse_pipeline(self,gst_pipeline_string):
 		self.pipeline_array.append(pipelines.gstreamerpipeline.Pipeline(self.config))
 		self.pipeline_array[-1].create_pipeline_from_string(gst_pipeline_string)
     
 	def create_pipeline_from_osc_string(self, addr, tags, data, source):
-		print "\nrecieved data %s  \n" % data 
+		print "\nrecieved osc msg " + str(addr) + " data=%s  \n" % data[-1] 
 		for d in data:
 			print d
 			#self.parse_pipeline(data[0])
 
-	def change_pipeline_number(self, addr, tags, data, source):
-		print "\nrecieved /config/change/number: %s  \n" % data[-1] 
-		self.pipeline_number = data[0]
+	def change_config_number(self, addr, tags, data, source):
+		print "\nrecieved osc msg " + str(addr) + " data=%s  \n" % data[-1] 
+		self.config_number = data[0]
+		self.init_gtk()
+
+	def stream_start_stop(self,addr, tags, data, source):
+		print "\nrecieved osc msg " + str(addr) + " data=%s  \n" % data[-1] 
+		self.StartStop(data[-1])
+
+	def stream_ready(self,addr, tags, data, source):
+		print "\nrecieved osc msg " + str(addr) + " data=%s  \n" % data[-1] 
+		self.ready()
+
+	def delete_pipeline(self,addr, tags, data, source):
+		print "\nrecieved osc msg " + str(addr) + " data=%s  \n" % data[-1] 
+		if data[-1] >= 0 and data[-1] < len(self.pipeline_array):
+			p = self.pipeline_array.pop(data[-1])
+			p.quit()
+			print "nr of streams: " + str(len(self.pipeline_array))
+		else:
+			print "no pipelines objects"
+
+	def osc_print_caps(self,addr, tags, data, source):
+		for p in self.pipeline_array:
+			c = p.get_caps()
+			print "\n caps of stream" + str(p.number) + ": " + c
+			
+			"""
+			self.config.set("Caps","CurentPipeline%s" % p.number,c)
+			cfgfile = open("config.ini",'w')
+			self.config.write(cfgfile)
+			self.config.read("config.ini")
+			# print self.config.get("OSC","CurentPipeline%s" % p.number)
+			"""
+
     
 	def run(self):
 		print "initializing Object"
@@ -119,24 +145,10 @@ class StreamingApplication:
 		print "Pipeline('s) initialized"
 		self.init_OSC()
 
-		#self.ready()
-		#self.StartStopAll()
-
-		if self.config.getint("GTK","Init"):
-			print "GTK Window initialized"
-			self.init_gtk()
-			gtk.gdk.threads_init()
-			gtk.main()
-		else:
-			gobject.threads_init()
-			self.mainloop = gobject.MainLoop()
-			self.mainloop.run()
+		gobject.threads_init()
+		self.mainloop = gobject.MainLoop()
+		self.mainloop.run()
 		print "exit"
-
-	def stream_start_stop(self,addr, tags, data, source):
-		print "received osc msg /stream/start from %s" % OSC.getUrlStr(source)
-		#self.ready()
-		self.StartStop(data[-1])
    
 	def StartStopAll(self):
 		for p in self.pipeline_array:
@@ -145,10 +157,6 @@ class StreamingApplication:
 	def StartStop(self, p_nr):
 		if p_nr >= 0 and p_nr < len(self.pipeline_array):
 			self.pipeline_array[p_nr].StartStop()
-
-	def stream_ready(self,addr, tags, data, source):
-		print "received osc msg /stream/ready from %s" % OSC.getUrlStr(source)
-		self.ready()
     
 	def ready(self,p_nr):
 		if p_nr >= 0 and p_nr < len(self.pipeline_array):
@@ -158,9 +166,6 @@ class StreamingApplication:
 		for p in self.pipeline_array:
 			p.ready()
 		  
-	def OnQuit(self, widget):
-		self.quit()
-
 	def quit(self):
 		try:
 			for p in self.pipeline_array:
@@ -168,35 +173,25 @@ class StreamingApplication:
 				time.sleep(1)
 				p.quit()
 		except NameError:
-			print "Error: Application: NoneType: somehow p.quit not working"
+			print "NameError: somehow pipeline.quit() not working"
 		self.osc_server.close()
-		if self.config.getint("GTK","Init"):
-			gtk.main_quit()
-		else:
-			self.mainloop.quit()
-
-	def delete_pipeline(self,addr, tags, data, source):
-		print "delete pipeline: %s" % data[-1]
-		if data[-1] >= 0 and data[-1] < len(self.pipeline_array):
-			p = self.pipeline_array.pop(data[-1])
-			p.quit()
-			print "nr of streams: " + str(len(self.pipeline_array))
-		else:
-			print "no pipelines objects"
-
+		self.mainloop.quit()
       
-	def osc_print_caps(self,addr, tags, data, source):
-		for p in self.pipeline_array:
-			c = p.get_caps()
-			print "\n caps of stream" + str(p.number) + ": " + c
-			"""
-			if p.number == 0:
-				self.config.set("Caps","CurrentRTP",c)
-				cfgfile = open("config.ini",'w')
-				self.config.write(cfgfile)
-				self.config.read("config.ini")
-				print self.config.get("OSC","CurrentRTP")
-			"""
+	def init_gtk(self):
+		self.gtk_init = 1
+		self.window = gtk.Window()
+		#self.window.connect("destroy", gtk.main_quit, "WM destroy")
+		#self.window.connect("key-press-event",self.on_window_key_press_event)
+		hbox = gtk.HBox()
+		self.da = gtk.DrawingArea()
+		hbox.pack_start(self.da)
+		self.window.add(hbox)
+		self.window.show_all()
+		gtk.gdk.threads_init()
+		print "GTK Window initialized"
+		# self.sink = gst.element_factory_make("xvimagesink", "vsink")
+		#self.sink.set_property("force-aspect-ratio", True)
+		#self.sink.set_xwindow_id(self.da.window.xid)
 				
 
 try :

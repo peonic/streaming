@@ -46,16 +46,16 @@ class VideoSrcToFileSink(gstreamerpipeline.Pipeline):
 		encoder = gst.element_factory_make("ffenc_mpeg4", "ffenc_mpeg4")
 		encoder.set_property("bitrate",self.config.getint("Encoder","Bitrate"))
 		
-		self.sink = gst.element_factory_make("avimux", "avimuxer")
+		muxer = gst.element_factory_make("avimux", "avimuxer")
 		queue = gst.element_factory_make("queue")
 
-		filesink = gst.element_factory_make("filesink", "filesink")   
+		self.sink = gst.element_factory_make("filesink", "filesink")   
 		print "Filepath: " + os.getcwd() + self.config.get("Recorder","filepath") + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi"
-		filesink.set_property("location", os.getcwd() + self.config.get("Recorder","filepath") + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi")
+		self.sink.set_property("location", os.getcwd() + self.config.get("Recorder","filepath") + "recorded_camid_" + str(p_item) + "_nr" + str(self.record_id) + ".avi")
 
 		# adding the pipleine elements and linking them together
-		self.pipeline.add(self.source, scaler, rate, filter1, conv, encoder, self.sink, queue, filesink)
-		gst.element_link_many(self.source, scaler, rate, filter1, conv, encoder, self.sink, queue, filesink)
+		self.pipeline.add(self.source, scaler, rate, filter1, conv, encoder, muxer, queue, self.sink)
+		gst.element_link_many(self.source, scaler, rate, filter1, conv, encoder, muxer, queue, self.sink)
 
 		self.bus = self.pipeline.get_bus()
 		self.bus.add_signal_watch()
