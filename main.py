@@ -40,6 +40,9 @@ class StreamingApplication:
 	def __init__(self):  
 		self.config = ConfigParser.ConfigParser()
 		self.config.read("config.ini")
+		self.video_caps = ConfigParser.ConfigParser()
+		self.video_caps.read("video.caps")
+		
 		# print self.config.sections()
 
 		self.pipeline_array = []
@@ -56,9 +59,25 @@ class StreamingApplication:
 		self.osc_server.addMsgHandler(self.config.get("OSC","StreamFactoryCreate"),self.pipeline_factory)
 		self.osc_server.addMsgHandler(self.config.get("OSC","StreamDelete"),self.delete_pipeline)
 		self.osc_server.addMsgHandler(self.config.get("OSC","ConfigChangeNumber"),self.change_config_number)
+		self.osc_server.addMsgHandler(self.config.get("OSC","CapsWriteToFile"),self.write_caps_to_file)
+		self.osc_server.addMsgHandler(self.config.get("OSC","CapsReadFromFile"),self.read_caps_from_file)
 		self.osc_server.start()
 		
 		self.osc_client = osc.oschandler.OSCClient((self.config.get("OSC","ClientAddress"),self.config.getint("OSC","ClientPort")))
+
+	def read_caps_from_file(self,addr, tags, data, source):
+		print "\nrecieved osc msg " + str(addr) + " data=%s  \n" % data[-1] 
+		self.video_caps.read("video.caps")
+		
+	def write_caps_to_file(self,addr, tags, data, source):
+		print "\nrecieved osc msg " + str(addr) + " data=%s  \n" % data[-1] 
+		cfgfile = open("video.caps",'w')
+		for p in self.pipeline_array:
+			c = p.get_caps()
+			print "\n caps of stream" + str(p.number) + ": " + c
+			self.video_caps.set("CurrentCaps","CurentPipeline%s" % p.number,c)			
+		self.video_caps.write(cfgfile)
+	
 
 	def factory(self, className, args):
 		try:
@@ -113,12 +132,13 @@ class StreamingApplication:
 			print "\n caps of stream" + str(p.number) + ": " + c
 			
 			"""
-			self.config.set("Caps","CurentPipeline%s" % p.number,c)
+			
 			cfgfile = open("config.ini",'w')
 			self.config.write(cfgfile)
 			self.config.read("config.ini")
 			# print self.config.get("OSC","CurentPipeline%s" % p.number)
 			"""
+    
     
 	def run(self):
 		print "initializing Object"
