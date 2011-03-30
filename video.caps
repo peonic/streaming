@@ -1,0 +1,8 @@
+[InitialCaps]
+yuy2 = video/x-raw-yuv,format=(fourcc)YUY2
+rawfullsize = video/x-raw-yuv, width=640, height=480,framerate=25/1
+rawhalfsize = video/x-raw-yuv, width=320, height=240,framerate=25/1
+currentrtp = application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd0a041e1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)3364551304, clock-base=(uint)2119996154, seqnum-base=(uint)30608
+
+[CurrentCaps]
+video1 = application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP4V-ES, profile-level-id=(string)1, config=(string)000001b001000001b58913000001000000012000c48d8800cd0a041e1463000001b24c61766335322e37322e32, payload=(int)96, ssrc=(uint)3364551304, clock-base=(uint)2119996154, seqnum-base=(uint)30608
